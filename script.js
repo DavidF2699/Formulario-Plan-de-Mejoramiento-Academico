@@ -629,14 +629,14 @@ async function cargarEstadisticas() {
     }
     detalles += '</div>';
 
-    detalles += '<div class="chart-container"><h3 class="chart-title">Tutorías por Sede</h3>';
+    detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Tutorías por Sede</h3>';
     Object.entries(stats.sedesTutorias).forEach(([sede, cantidad]) => {
       const porcentaje = ((cantidad / stats.total) * 100).toFixed(1);
       detalles += `<div class="list-item"><span>Sede ${sede}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
     });
     detalles += '</div>';
 
-    detalles += '<div class="chart-container"><h3 class="chart-title">Todos los Instructores - Sede Norte</h3>';
+    detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Tutorías por Instructor - Sede Norte</h3>';
     const instructoresNorte = Object.entries(stats.instructoresPorSede.Norte || {})
       .sort((a, b) => b[1] - a[1]);
     if (instructoresNorte.length > 0) {
@@ -644,7 +644,7 @@ async function cargarEstadisticas() {
         const promedio = promediosPorInstructor[instructor] || 'N/A';
         detalles += `<div class="list-item">
           <span>${instructor}</span>
-          <strong>${cantidad} tutorías (Promedio: ${promedio})</strong>
+          <strong>${cantidad} tutorías<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
         </div>`;
       });
     } else {
@@ -652,7 +652,7 @@ async function cargarEstadisticas() {
     }
     detalles += '</div>';
 
-    detalles += '<div class="chart-container"><h3 class="chart-title">Todos los Instructores - Sede Sur</h3>';
+    detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Tutorías por Instructor - Sede Sur</h3>';
     const instructoresSur = Object.entries(stats.instructoresPorSede.Sur || {})
       .sort((a, b) => b[1] - a[1]);
     if (instructoresSur.length > 0) {
@@ -660,7 +660,7 @@ async function cargarEstadisticas() {
         const promedio = promediosPorInstructor[instructor] || 'N/A';
         detalles += `<div class="list-item">
           <span>${instructor}</span>
-          <strong>${cantidad} tutorías (Promedio: ${promedio})</strong>
+          <strong>${cantidad} tutorías<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
         </div>`;
       });
     } else {
