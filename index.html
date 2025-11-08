@@ -9,8 +9,8 @@
 </head>
 <body>
   <div class="header-bar">
-    <h1 style="text-align: center;">PROGRAMA DE MEJORAMIENTO ACADÉMICO (PMA)</h1>
-    <p style="text-align: left; margin-top: 10px; line-height: 1.8;">
+    <h1>PROGRAMA DE MEJORAMIENTO ACADÉMICO (PMA)</h1>
+    <p>
       <strong>Formulario de Asistencia a Tutorías</strong><br>
       Institución Universitaria Antonio José Camacho
     </p>
@@ -20,111 +20,115 @@
     <!-- PANTALLA DE INICIO -->
     <div id="pantallaInicio">
       <h2 class="section-title">Bienvenido</h2>
-      <p style="margin-bottom: 20px; line-height: 1.6; color: #555;">Seleccione una opción para continuar con el registro de su asistencia a tutorías del Programa de Mejoramiento Académico.</p>
+      <p class="texto-bienvenida">Seleccione una opción para continuar con el registro de su asistencia a tutorías del Programa de Mejoramiento Académico.</p>
       <button class="btn" onclick="mostrarLogin()">Formulario</button>
       <button class="btn btn-secondary" onclick="mostrarRegistro()">Registrarse</button>
       
       <p class="registro-unico">El registro se realiza una única vez</p>
 
-      <div style="margin-top: 25px;">
+      <div class="horarios-wrapper">
         <button class="btn btn-secondary" onclick="toggleHorarios()" id="btnHorarios">
           📅 Horarios y Lugar de Atención
         </button>
         
-        <div id="contenedorHorarios" class="hidden" style="margin-top: 15px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #1e3c72;">
+        <div id="contenedorHorarios" class="hidden contenedor-horarios">
           <!-- Botones de sedes -->
-          <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px;">
-            <button class="btn btn-secondary" onclick="toggleHorario('norte')" style="flex: 1; min-width: 150px; margin: 0;">
+          <div class="botones-sedes">
+            <button class="btn btn-secondary btn-sede" onclick="toggleHorario('norte')">
               Sede Norte
             </button>
-            <button class="btn btn-secondary" onclick="toggleHorario('sur')" style="flex: 1; min-width: 150px; margin: 0;">
+            <button class="btn btn-secondary btn-sede" onclick="toggleHorario('sur')">
               Sede Sur
             </button>
-            <button class="btn btn-secondary" onclick="toggleHorario('virtual')" style="flex: 1; min-width: 150px; margin: 0;">
+            <button class="btn btn-secondary btn-sede" onclick="toggleHorario('virtual')">
               Virtual
             </button>
           </div>
 
           <!-- Horario Sede Norte -->
           <div id="horarioNorte" class="horario-info hidden">
-            <h4 style="color: #1e3c72; margin-bottom: 12px; text-align: center;">Sede Norte</h4>
+            <h4 class="horario-titulo">Sede Norte</h4>
             
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">De Lunes a Viernes</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
+            <div class="horario-bloque">
+              <strong class="horario-dia">De Lunes a Viernes</strong>
+              <p class="horario-detalle">
                 ⏰ 10:15 AM - 12:00 PM<br>
-                ⏰ 2:15 PM - 6:30 PM<br>
+                ⏰ 2:15 PM - 6:15 PM<br>
                 📍 Salones del Bloque D
               </p>
             </div>
 
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Sábados</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
+            <div class="horario-bloque">
+              <strong class="horario-dia">Sábados</strong>
+              <p class="horario-detalle">
                 ⏰ 1:00 PM - 4:00 PM<br>
                 📍 Salones del Bloque D
               </p>
             </div>
 
-            <div style="background: white; padding: 15px; border-radius: 6px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Domingos</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
+            <div class="horario-bloque">
+              <strong class="horario-dia">Domingos</strong>
+              <p class="horario-detalle">
                 ⏰ Horarios de la mañana<br>
-                📍 Salones del Bloque D
+                📧 Separar con anticipación al correo:<br>
+                <a href="mailto:pma@admon.uniajc.edu.co" class="correo-link">pma@admon.uniajc.edu.co</a><br>
+                💻 Modalidad Virtual
               </p>
             </div>
           </div>
 
           <!-- Horario Sede Sur -->
           <div id="horarioSur" class="horario-info hidden">
-            <h4 style="color: #1e3c72; margin-bottom: 12px; text-align: center;">Sede Sur</h4>
+            <h4 class="horario-titulo">Sede Sur</h4>
             
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">De Lunes a Viernes</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
-                ⏰ 9:00 AM - 12:00 PM<br>
-                ⏰ 2:00 PM - 6:00 PM<br>
-                📍 Centro de Recursos para el Aprendizaje (CRA)
+            <div class="horario-bloque">
+              <strong class="horario-dia">De Lunes a Viernes</strong>
+              <p class="horario-detalle">
+                ⏰ 10:15 AM - 12:00 PM<br>
+                ⏰ 2:15 PM - 6:15 PM<br>
+                📍 Salones
               </p>
             </div>
 
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Sábados</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
+            <div class="horario-bloque">
+              <strong class="horario-dia">Sábados</strong>
+              <p class="horario-detalle">
                 ⏰ 10:00 AM - 1:00 PM<br>
                 📍 Centro de Recursos para el Aprendizaje (CRA)
               </p>
             </div>
 
-            <div style="background: white; padding: 15px; border-radius: 6px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Domingos</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
+            <div class="horario-bloque">
+              <strong class="horario-dia">Domingos</strong>
+              <p class="horario-detalle">
                 ⏰ Horarios de la mañana<br>
-                📍 Centro de Recursos para el Aprendizaje (CRA)
+                📧 Separar con anticipación al correo:<br>
+                <a href="mailto:pma@admon.uniajc.edu.co" class="correo-link">pma@admon.uniajc.edu.co</a><br>
+                💻 Modalidad Virtual
               </p>
             </div>
           </div>
 
           <!-- Horario Virtual -->
           <div id="horarioVirtual" class="horario-info hidden">
-            <h4 style="color: #1e3c72; margin-bottom: 12px; text-align: center;">Modalidad Virtual</h4>
+            <h4 class="horario-titulo">Modalidad Virtual</h4>
             
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">De Lunes a Viernes</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
+            <div class="horario-bloque">
+              <strong class="horario-dia">De Lunes a Viernes</strong>
+              <p class="horario-detalle">
                 ⏰ Horarios de la mañana<br>
                 📧 Separar con anticipación al correo:<br>
-                <a href="mailto:pma@admon.uniajc.edu.co" style="color: #1e3c72; font-weight: 600;">pma@admon.uniajc.edu.co</a><br>
+                <a href="mailto:pma@admon.uniajc.edu.co" class="correo-link">pma@admon.uniajc.edu.co</a><br>
                 💻 Modalidad Virtual
               </p>
             </div>
 
-            <div style="background: white; padding: 15px; border-radius: 6px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Domingos</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
+            <div class="horario-bloque">
+              <strong class="horario-dia">Domingos</strong>
+              <p class="horario-detalle">
                 ⏰ Horarios de la mañana<br>
                 📧 Separar con anticipación al correo:<br>
-                <a href="mailto:pma@admon.uniajc.edu.co" style="color: #1e3c72; font-weight: 600;">pma@admon.uniajc.edu.co</a><br>
+                <a href="mailto:pma@admon.uniajc.edu.co" class="correo-link">pma@admon.uniajc.edu.co</a><br>
                 💻 Modalidad Virtual
               </p>
             </div>
@@ -155,19 +159,19 @@
         </div>
         <div class="form-group">
           <label>Primer Nombre *</label>
-          <input type="text" id="regPrimerNombre" required style="text-transform: uppercase;" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ]/g, '')">
+          <input type="text" id="regPrimerNombre" required class="uppercase-input" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ]/g, '')">
         </div>
         <div class="form-group">
           <label>Segundo Nombre</label>
-          <input type="text" id="regSegundoNombre" style="text-transform: uppercase;" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ]/g, '')">
+          <input type="text" id="regSegundoNombre" class="uppercase-input" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ]/g, '')">
         </div>
         <div class="form-group">
           <label>Primer Apellido *</label>
-          <input type="text" id="regPrimerApellido" required style="text-transform: uppercase;" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ]/g, '')">
+          <input type="text" id="regPrimerApellido" required class="uppercase-input" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ]/g, '')">
         </div>
         <div class="form-group">
           <label>Segundo Apellido *</label>
-          <input type="text" id="regSegundoApellido" required style="text-transform: uppercase;" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ]/g, '')">
+          <input type="text" id="regSegundoApellido" required class="uppercase-input" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ]/g, '')">
         </div>
         <div class="form-group">
           <label>Facultad *</label>
@@ -195,7 +199,7 @@
             <h3>Confirme sus datos antes de registrarse</h3>
             <div id="datosConfirmacion"></div>
           </div>
-          <div class="alert-box" style="margin-top: 15px;">
+          <div class="alert-box alert-box-margin">
             <strong>Revise cuidadosamente:</strong>
             Si sus datos no están correctos, no podremos verificar su asistencia a las tutorías. Una vez registrado, contacte al administrador para cualquier corrección.
           </div>
@@ -210,7 +214,7 @@
     <!-- PANTALLA DE LOGIN -->
     <div id="pantallaLogin" class="hidden">
       <h2 class="section-title">Llenar Formulario</h2>
-      <p style="margin-bottom: 20px; color: #555;">Ingrese su documento de identidad para acceder al formulario de registro de asistencia.</p>
+      <p class="texto-login">Ingrese su documento de identidad para acceder al formulario de registro de asistencia.</p>
       <div id="mensajeLogin"></div>
       <form id="formLogin" onsubmit="iniciarSesion(event)">
         <div class="form-group">
@@ -252,7 +256,7 @@
 
         <div class="form-group">
           <label>Grupo *</label>
-          <input type="text" id="grupo" required style="text-transform: uppercase;">
+          <input type="text" id="grupo" required class="uppercase-input">
         </div>
 
         <div class="form-group">
@@ -266,7 +270,7 @@
 
         <div class="form-group hidden" id="grupoTituloCurso">
           <label>Título del curso/capacitación *</label>
-          <input type="text" id="tituloCurso" style="text-transform: uppercase;">
+          <input type="text" id="tituloCurso" class="uppercase-input">
         </div>
 
         <div class="form-group">
@@ -313,7 +317,7 @@
 
         <div class="form-group hidden" id="grupoCalificacion">
           <label>Calificación de la tutoría *</label>
-          <p style="font-size: 13px; color: #666; margin-bottom: 5px; line-height: 1.6;">
+          <p class="texto-calificacion">
             Evalúe la calidad de la tutoría recibida<br>
             1 = Deficiente<br>
             5 = Excelente
@@ -335,7 +339,7 @@
         <div class="form-group hidden" id="grupoSugerencias">
           <label>Sugerencias o Comentarios</label>
           <textarea id="sugerencias" placeholder="Escriba aquí sus sugerencias, comentarios o recomendaciones"></textarea>
-          <label style="margin-top: 10px; font-weight: normal; font-size: 13px;">
+          <label class="checkbox-label">
             <input type="checkbox" id="ningunaSugerencia" onchange="toggleSugerencias()"> No tengo sugerencias
           </label>
         </div>
@@ -362,7 +366,7 @@
     <!-- PANEL DE ADMINISTRADOR -->
     <div id="pantallaAdmin" class="hidden">
       <h2 class="section-title">Panel de Administración</h2>
-      <p id="nombreAdmin" style="color: #666; margin-bottom: 20px;"></p>
+      <p id="nombreAdmin" class="nombre-admin"></p>
       
       <div class="admin-tabs">
         <button class="admin-tab active" onclick="cambiarTab(event, 'estadisticas')">Estadísticas</button>
@@ -377,7 +381,7 @@
       <div id="tabDescargas" class="hidden">
         <div class="chart-container">
           <h3 class="chart-title">Descargar Reportes</h3>
-          <p style="margin-bottom: 20px; color: #555; font-size: 14px;">Descargue los registros de asistencia en formato CSV para análisis en Excel.</p>
+          <p class="texto-descargas">Descargue los registros de asistencia en formato CSV para análisis en Excel.</p>
           
           <div class="form-group">
             <label>Fecha Desde</label>
@@ -392,20 +396,18 @@
         </div>
       </div>
 
-      <button type="button" class="btn btn-secondary" style="margin-top: 25px;" onclick="cerrarSesionAdmin()">Cerrar Sesión</button>
+      <button type="button" class="btn btn-secondary btn-cerrar-admin" onclick="cerrarSesionAdmin()">Cerrar Sesión</button>
     </div>
   </div>
 
   <!-- Logo fuera del contenedor -->
-  <div style="text-align: center; margin-top: 30px; padding-bottom: 30px;">
-    <img id="logoUniversidad" src="https://raw.githubusercontent.com/UNIAJC-PMA/Formulario-Asistencia-PMA/refs/heads/main/LOGO%20BLANCO.png" alt="Logo UNIAJC" style="max-width: 150px; height: auto;">
-    <p style="font-size: 12px; color: #fff; margin-top: 10px;">
-      Institución Universitaria Antonio José Camacho
-    </p>
+  <div class="logo-footer">
+    <img id="logoUniversidad" src="https://raw.githubusercontent.com/UNIAJC-PMA/Formulario-Asistencia-PMA/refs/heads/main/LOGO%20BLANCO.png" alt="Logo UNIAJC">
+    <p>Institución Universitaria Antonio José Camacho</p>
   </div>
 
   <!-- Modal de éxito de registro -->
-  <div id="modalExitoRegistro" class="modal-overlay hidden" style="display: none;">
+  <div id="modalExitoRegistro" class="modal-overlay hidden">
     <div class="modal-success">
       <div class="success-icon">✓</div>
       <h2>¡Registro Exitoso!</h2>
@@ -415,7 +417,7 @@
   </div>
 
   <!-- Modal de éxito de formulario -->
-  <div id="modalExitoFormulario" class="modal-overlay hidden" style="display: none;">
+  <div id="modalExitoFormulario" class="modal-overlay hidden">
     <div class="modal-success">
       <div class="success-icon">✓</div>
       <h2>¡Formulario Enviado!</h2>
@@ -425,7 +427,7 @@
   </div>
 
   <!-- Modal de confirmación de cancelación -->
-  <div id="modalConfirmacion" class="modal-overlay hidden" style="display: none;">
+  <div id="modalConfirmacion" class="modal-overlay hidden">
     <div class="modal-confirmacion">
       <h2 id="tituloConfirmacion">¿Estás seguro?</h2>
       <p id="mensajeConfirmacion">Esta acción no se puede deshacer.</p>
