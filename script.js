@@ -8,6 +8,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 let datosEstudiante = null;
 let instructorActual = null;
 let facultadesData = {};
+let formularioIniciado = false;
 
 // ===================================
 // FUNCIONES DE SUPABASE
@@ -54,30 +55,48 @@ function mostrarPantalla(id) {
 }
 
 function mostrarLogin() {
+  cerrarHorarios();
   mostrarPantalla('pantallaLogin');
   document.getElementById('mensajeLogin').innerHTML = '';
 }
 
 function mostrarRegistro() {
+  cerrarHorarios();
   mostrarPantalla('pantallaRegistro');
   document.getElementById('mensajeRegistro').innerHTML = '';
   document.getElementById('confirmacionDatos').classList.add('hidden');
   document.getElementById('btnConfirmarRegistro').classList.add('hidden');
+  document.getElementById('btnContinuarRegistro').classList.remove('hidden');
   cargarFacultades();
 }
 
 function mostrarLoginAdmin() {
+  cerrarHorarios();
   mostrarPantalla('pantallaAdminLogin');
   document.getElementById('mensajeAdminLogin').innerHTML = '';
 }
 
-function toggleHorario(sede) {
-  // Ocultar todos los horarios
+function toggleHorariosContainer() {
+  const container = document.getElementById('horariosContainer');
+  container.classList.toggle('hidden');
+  
+  // Si se está cerrando, ocultar todos los horarios también
+  if (container.classList.contains('hidden')) {
+    document.getElementById('horarioNorte').classList.add('hidden');
+    document.getElementById('horarioSur').classList.add('hidden');
+    document.getElementById('horarioVirtual').classList.add('hidden');
+  }
+}
+
+function cerrarHorarios() {
+  document.getElementById('horariosContainer').classList.add('hidden');
   document.getElementById('horarioNorte').classList.add('hidden');
   document.getElementById('horarioSur').classList.add('hidden');
   document.getElementById('horarioVirtual').classList.add('hidden');
-  
-  // Mostrar el seleccionado
+}
+
+function toggleHorario(sede) {
+  // Alternar el horario seleccionado
   if (sede === 'norte') {
     document.getElementById('horarioNorte').classList.toggle('hidden');
   } else if (sede === 'sur') {
@@ -88,8 +107,10 @@ function toggleHorario(sede) {
 }
 
 function volverInicio() {
+  cerrarHorarios();
   mostrarPantalla('pantallaInicio');
   limpiarFormularios();
+  formularioIniciado = false;
 }
 
 function limpiarFormularios() {
@@ -107,6 +128,41 @@ function mostrarMensaje(elementId, mensaje, tipo) {
 
 function mostrarCargando(elementId) {
   document.getElementById(elementId).innerHTML = '<div class="loader"></div>';
+}
+
+// ===================================
+// MODAL DE PANTALLA COMPLETA
+// ===================================
+function mostrarModalPantallaCompleta(titulo, mensaje) {
+  document.getElementById('modalTitle').textContent = titulo;
+  document.getElementById('modalMessage').textContent = mensaje;
+  document.getElementById('fullScreenModal').classList.remove('hidden');
+  
+  setTimeout(() => {
+    document.getElementById('fullScreenModal').classList.add('hidden');
+    volverInicio();
+  }, 3000);
+}
+
+// ===================================
+// MODAL DE CONFIRMACIÓN
+// ===================================
+function intentarCancelarFormulario() {
+  // Solo mostrar el modal si el formulario ha sido iniciado
+  if (formularioIniciado) {
+    document.getElementById('confirmModal').classList.remove('hidden');
+  } else {
+    cerrarSesion();
+  }
+}
+
+function confirmarCancelacion() {
+  document.getElementById('confirmModal').classList.add('hidden');
+  cerrarSesion();
+}
+
+function cerrarModalConfirm() {
+  document.getElementById('confirmModal').classList.add('hidden');
 }
 
 // ===================================
@@ -212,6 +268,7 @@ function mostrarConfirmacion() {
   document.getElementById('datosConfirmacion').innerHTML = html;
   document.getElementById('confirmacionDatos').classList.remove('hidden');
   document.getElementById('btnConfirmarRegistro').classList.remove('hidden');
+  document.getElementById('btnContinuarRegistro').classList.add('hidden');
   
   window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
@@ -242,11 +299,9 @@ async function registrarEstudiante(event) {
     }
 
     await supabaseInsert('estudiantes', datos);
-    mostrarMensaje('mensajeRegistro', '¡Registro exitoso! Bienvenido al PMA. Redirigiendo a la página principal...', 'success');
     
-    setTimeout(() => {
-      volverInicio();
-    }, 3000);
+    // Mostrar modal de pantalla completa
+    mostrarModalPantallaCompleta('¡Registrado Correctamente!', 'Bienvenido al PMA. Redirigiendo a la página principal...');
   } catch (error) {
     mostrarMensaje('mensajeRegistro', 'Error en el registro: ' + error.message, 'error');
   }
@@ -294,9 +349,11 @@ async function iniciarSesion(event) {
       sede: estudiante.sede || ''
     };
 
+    formularioIniciado = false;
     mostrarPantalla('pantallaFormulario');
     document.getElementById('nombreUsuario').textContent = 'Bienvenido(a): ' + datosEstudiante.nombreCensurado;
     document.getElementById('mensajeFormulario').innerHTML = '';
+    document.getElementById('btnCancelarFormulario').textContent = 'Cerrar Sesión';
   } catch (error) {
     mostrarMensaje('mensajeLogin', 'Error de conexión: ' + error.message, 'error');
   }
@@ -310,6 +367,9 @@ async function cargarInstructores() {
   const tipo = document.getElementById('tipoInstructor').value;
 
   if (!sede || !tipo) return;
+
+  formularioIniciado = true;
+  document.getElementById('btnCancelarFormulario').textContent = 'Cancelar';
 
   const selectInstructor = document.getElementById('instructor');
   selectInstructor.innerHTML = '<option value="">Cargando...</option>';
@@ -486,8 +546,11 @@ async function guardarFormulario(event) {
 
   try {
     await supabaseInsert('formularios', datos);
-    mostrarMensaje('mensajeFormulario', 'Formulario guardado exitosamente. Gracias por su participación en el PMA.', 'success');
     
+    // Mostrar modal de pantalla completa
+    mostrarModalPantallaCompleta('¡Formulario Guardado Exitosamente!', 'Gracias por su participación en el PMA.');
+    
+    // Limpiar formulario
     document.getElementById('formTutoria').reset();
     document.getElementById('grupoInstructor').classList.add('hidden');
     document.getElementById('grupoMateria').classList.add('hidden');
@@ -495,6 +558,7 @@ async function guardarFormulario(event) {
     document.getElementById('grupoCalificacion').classList.add('hidden');
     document.getElementById('grupoSugerencias').classList.add('hidden');
     document.getElementById('btnEnviar').classList.add('hidden');
+    formularioIniciado = false;
   } catch (error) {
     mostrarMensaje('mensajeFormulario', 'Error al guardar: ' + error.message, 'error');
   }
@@ -503,6 +567,7 @@ async function guardarFormulario(event) {
 function cerrarSesion() {
   datosEstudiante = null;
   instructorActual = null;
+  formularioIniciado = false;
   volverInicio();
 }
 
@@ -657,22 +722,6 @@ async function cargarEstadisticas() {
       const porcentaje = ((cantidad / stats.total) * 100).toFixed(1);
       detalles += `<div class="list-item"><span>Sede ${sede}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
     });
-    detalles += '</div>';
-
-    detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Tutorías por Instructor - Sede Norte</h3>';
-    const instructoresNorte = Object.entries(stats.instructoresPorSede.Norte || {})
-      .sort((a, b) => b[1] - a[1]);
-    if (instructoresNorte.length > 0) {
-      instructoresNorte.forEach(([instructor, cantidad]) => {
-        const promedio = promediosPorInstructor[instructor] || 'N/A';
-        detalles += `<div class="list-item">
-          <span>${instructor}</span>
-          <strong>${cantidad} tutorías<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
-        </div>`;
-      });
-    } else {
-      detalles += '<p style="text-align: center; color: #666;">No hay instructores en Sede Norte</p>';
-    }
     detalles += '</div>';
 
     detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Tutorías por Instructor - Sede Sur</h3>';
@@ -893,4 +942,20 @@ function cerrarSesionAdmin() {
 // ===================================
 window.onload = function() {
   console.log('Sistema PMA con Supabase iniciado');
-};
+}; - Sede Norte</h3>';
+    const instructoresNorte = Object.entries(stats.instructoresPorSede.Norte || {})
+      .sort((a, b) => b[1] - a[1]);
+    if (instructoresNorte.length > 0) {
+      instructoresNorte.forEach(([instructor, cantidad]) => {
+        const promedio = promediosPorInstructor[instructor] || 'N/A';
+        detalles += `<div class="list-item">
+          <span>${instructor}</span>
+          <strong>${cantidad} tutorías<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
+        </div>`;
+      });
+    } else {
+      detalles += '<p style="text-align: center; color: #666;">No hay instructores en Sede Norte</p>';
+    }
+    detalles += '</div>';
+
+    detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Tutorías por Instructor
