@@ -246,16 +246,24 @@ async function registrarEstudiante(event) {
       return;
     }
 
-    await supabaseInsert('estudiantes', datos);
+    const resultado = await supabaseInsert('estudiantes', datos);
     
-    // Mostrar modal de éxito
-    document.getElementById('modalExitoRegistro').classList.remove('hidden');
-    
-    // Redirigir después de 3 segundos
-    setTimeout(() => {
-      document.getElementById('modalExitoRegistro').classList.add('hidden');
-      volverInicio();
-    }, 3000);
+    // Verificar que el registro fue exitoso
+    if (resultado && resultado.length > 0) {
+      // Limpiar mensaje de carga
+      document.getElementById('mensajeRegistro').innerHTML = '';
+      
+      // Mostrar modal de éxito SOLO si el registro fue exitoso
+      document.getElementById('modalExitoRegistro').classList.remove('hidden');
+      
+      // Redirigir después de 3 segundos
+      setTimeout(() => {
+        document.getElementById('modalExitoRegistro').classList.add('hidden');
+        volverInicio();
+      }, 3000);
+    } else {
+      mostrarMensaje('mensajeRegistro', 'Error: No se pudo completar el registro', 'error');
+    }
   } catch (error) {
     mostrarMensaje('mensajeRegistro', 'Error en el registro: ' + error.message, 'error');
   }
