@@ -27,107 +27,77 @@
       <p class="registro-unico">El registro se realiza una única vez</p>
 
       <div style="margin-top: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #1e3c72;">
-        <button class="btn btn-secondary" onclick="toggleHorariosContainer()" style="margin: 0;">
-          📅 Horarios y Lugar de Atención
-        </button>
+        <h3 style="color: #1e3c72; margin-bottom: 15px; text-align: center;">📅 Horarios y Lugar de Atención</h3>
         
-        <div id="horariosContainer" class="horarios-container hidden">
-          <!-- Botones de sedes -->
-          <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
-            <button class="btn btn-secondary" onclick="toggleHorario('norte')" style="flex: 1; min-width: 150px; margin: 0;">
-              Sede Norte
-            </button>
-            <button class="btn btn-secondary" onclick="toggleHorario('sur')" style="flex: 1; min-width: 150px; margin: 0;">
-              Sede Sur
-            </button>
-            <button class="btn btn-secondary" onclick="toggleHorario('virtual')" style="flex: 1; min-width: 150px; margin: 0;">
-              Virtual
-            </button>
+        <!-- Botones de sedes -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px;">
+          <button class="btn btn-secondary" onclick="toggleHorario('norte')" style="flex: 1; min-width: 150px; margin: 0;">
+            Sede Norte
+          </button>
+          <button class="btn btn-secondary" onclick="toggleHorario('sur')" style="flex: 1; min-width: 150px; margin: 0;">
+            Sede Sur
+          </button>
+          <button class="btn btn-secondary" onclick="toggleHorario('virtual')" style="flex: 1; min-width: 150px; margin: 0;">
+            Virtual
+          </button>
+        </div>
+
+        <!-- Horario Sede Norte -->
+        <div id="horarioNorte" class="horario-info hidden">
+          <h4 style="color: #1e3c72; margin-bottom: 12px; text-align: center;">Sede Norte</h4>
+          
+          <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
+            <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">De Lunes a Viernes</strong>
+            <p style="margin: 0; color: #555; line-height: 1.8;">
+              ⏰ 10:15 AM - 12:00 PM<br>
+              ⏰ 2:15 PM - 6:30 PM<br>
+              📍 Salones del Bloque D
+            </p>
           </div>
 
-          <!-- Horario Sede Norte -->
-          <div id="horarioNorte" class="horario-info hidden">
-            <h4 style="color: #1e3c72; margin-bottom: 12px; text-align: center;">Sede Norte</h4>
-            
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">De Lunes a Viernes</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
-                ⏰ 10:15 AM - 12:00 PM<br>
-                ⏰ 2:15 PM - 6:30 PM<br>
-                📍 Salones del Bloque D
-              </p>
-            </div>
+          <div style="background: white; padding: 15px; border-radius: 6px;">
+            <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Sábados</strong>
+            <p style="margin: 0; color: #555; line-height: 1.8;">
+              ⏰ 1:00 PM - 4:00 PM<br>
+              📍 Salones del Bloque D
+            </p>
+          </div>
+        </div>
 
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Sábados</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
-                ⏰ 1:00 PM - 4:00 PM<br>
-                📍 Salones del Bloque D
-              </p>
-            </div>
-
-            <div style="background: white; padding: 15px; border-radius: 6px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Domingos</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
-                ⏰ Horarios de la mañana<br>
-                📍 Salones del Bloque D
-              </p>
-            </div>
+        <!-- Horario Sede Sur -->
+        <div id="horarioSur" class="horario-info hidden">
+          <h4 style="color: #1e3c72; margin-bottom: 12px; text-align: center;">Sede Sur</h4>
+          
+          <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
+            <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">De Lunes a Viernes</strong>
+            <p style="margin: 0; color: #555; line-height: 1.8;">
+              ⏰ 9:00 AM - 12:00 PM<br>
+              ⏰ 2:00 PM - 6:00 PM<br>
+              📍 Centro de Recursos para el Aprendizaje (CRA)
+            </p>
           </div>
 
-          <!-- Horario Sede Sur -->
-          <div id="horarioSur" class="horario-info hidden">
-            <h4 style="color: #1e3c72; margin-bottom: 12px; text-align: center;">Sede Sur</h4>
-            
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">De Lunes a Viernes</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
-                ⏰ 9:00 AM - 12:00 PM<br>
-                ⏰ 2:00 PM - 6:00 PM<br>
-                📍 Centro de Recursos para el Aprendizaje (CRA)
-              </p>
-            </div>
-
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Sábados</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
-                ⏰ 10:00 AM - 1:00 PM<br>
-                📍 Centro de Recursos para el Aprendizaje (CRA)
-              </p>
-            </div>
-
-            <div style="background: white; padding: 15px; border-radius: 6px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Domingos</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
-                ⏰ Horarios de la mañana<br>
-                📍 Centro de Recursos para el Aprendizaje (CRA)
-              </p>
-            </div>
+          <div style="background: white; padding: 15px; border-radius: 6px;">
+            <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Sábados</strong>
+            <p style="margin: 0; color: #555; line-height: 1.8;">
+              ⏰ 10:00 AM - 1:00 PM<br>
+              📍 Centro de Recursos para el Aprendizaje (CRA)
+            </p>
           </div>
+        </div>
 
-          <!-- Horario Virtual -->
-          <div id="horarioVirtual" class="horario-info hidden">
-            <h4 style="color: #1e3c72; margin-bottom: 12px; text-align: center;">Modalidad Virtual</h4>
-            
-            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">De Lunes a Viernes</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
-                ⏰ Horarios de la tarde<br>
-                📧 Separar con anticipación al correo:<br>
-                <a href="mailto:pma@admon.uniajc.edu.co" style="color: #1e3c72; font-weight: 600;">pma@admon.uniajc.edu.co</a><br>
-                💻 Modalidad Virtual
-              </p>
-            </div>
-
-            <div style="background: white; padding: 15px; border-radius: 6px;">
-              <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Domingos</strong>
-              <p style="margin: 0; color: #555; line-height: 1.8;">
-                ⏰ Horarios de la mañana<br>
-                📧 Separar con anticipación al correo:<br>
-                <a href="mailto:pma@admon.uniajc.edu.co" style="color: #1e3c72; font-weight: 600;">pma@admon.uniajc.edu.co</a><br>
-                💻 Modalidad Virtual
-              </p>
-            </div>
+        <!-- Horario Virtual -->
+        <div id="horarioVirtual" class="horario-info hidden">
+          <h4 style="color: #1e3c72; margin-bottom: 12px; text-align: center;">Modalidad Virtual</h4>
+          
+          <div style="background: white; padding: 15px; border-radius: 6px;">
+            <strong style="color: #1e3c72; display: block; margin-bottom: 8px;">Domingos</strong>
+            <p style="margin: 0; color: #555; line-height: 1.8;">
+              ⏰ Horarios de la mañana<br>
+              📧 Separar con anticipación al correo:<br>
+              <a href="mailto:pma@admon.uniajc.edu.co" style="color: #1e3c72; font-weight: 600;">pma@admon.uniajc.edu.co</a><br>
+              💻 Modalidad Virtual
+            </p>
           </div>
         </div>
       </div>
@@ -200,7 +170,7 @@
           </div>
         </div>
 
-        <button type="button" class="btn" id="btnContinuarRegistro" onclick="mostrarConfirmacion()">Continuar</button>
+        <button type="button" class="btn" onclick="mostrarConfirmacion()">Continuar</button>
         <button type="submit" class="btn hidden" id="btnConfirmarRegistro">Confirmar y Registrarme</button>
         <button type="button" class="btn btn-secondary" onclick="volverInicio()">Cancelar</button>
       </form>
@@ -326,7 +296,7 @@
         </div>
 
         <button type="submit" class="btn hidden" id="btnEnviar">Enviar Formulario</button>
-        <button type="button" class="btn btn-secondary" id="btnCancelarFormulario" onclick="intentarCancelarFormulario()">Cancelar</button>
+        <button type="button" class="btn btn-secondary" onclick="cerrarSesion()">Cerrar Sesión</button>
       </form>
     </div>
 
@@ -378,32 +348,6 @@
       </div>
 
       <button type="button" class="btn btn-secondary" style="margin-top: 25px;" onclick="cerrarSesionAdmin()">Cerrar Sesión</button>
-    </div>
-  </div>
-
-  <!-- Modal de pantalla completa -->
-  <div id="fullScreenModal" class="fullscreen-modal hidden">
-    <div class="fullscreen-modal-content">
-      <div class="checkmark-container">
-        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-          <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
-          <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-        </svg>
-      </div>
-      <h2 id="modalTitle"></h2>
-      <p id="modalMessage"></p>
-    </div>
-  </div>
-
-  <!-- Modal de confirmación de cancelación -->
-  <div id="confirmModal" class="confirm-modal hidden">
-    <div class="confirm-modal-content">
-      <h3>⚠️ Confirmar Cancelación</h3>
-      <p>¿Está seguro que desea cancelar? Se perderá toda la información ingresada en el formulario.</p>
-      <div class="confirm-modal-buttons">
-        <button class="btn" onclick="confirmarCancelacion()">Sí, cancelar</button>
-        <button class="btn btn-secondary" onclick="cerrarModalConfirm()">No, continuar llenando</button>
-      </div>
     </div>
   </div>
 
