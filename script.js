@@ -90,6 +90,10 @@ function toggleHorario(sede) {
 function volverInicio() {
   mostrarPantalla('pantallaInicio');
   limpiarFormularios();
+  // Restaurar el botón continuar y ocultar confirmación
+  document.getElementById('btnContinuar').classList.remove('hidden');
+  document.getElementById('btnConfirmarRegistro').classList.add('hidden');
+  document.getElementById('confirmacionDatos').classList.add('hidden');
 }
 
 function limpiarFormularios() {
@@ -212,6 +216,7 @@ function mostrarConfirmacion() {
   document.getElementById('datosConfirmacion').innerHTML = html;
   document.getElementById('confirmacionDatos').classList.remove('hidden');
   document.getElementById('btnConfirmarRegistro').classList.remove('hidden');
+  document.getElementById('btnContinuar').classList.add('hidden');
   
   window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
@@ -242,9 +247,13 @@ async function registrarEstudiante(event) {
     }
 
     await supabaseInsert('estudiantes', datos);
-    mostrarMensaje('mensajeRegistro', '¡Registro exitoso! Bienvenido al PMA. Redirigiendo a la página principal...', 'success');
     
+    // Mostrar modal de éxito
+    document.getElementById('modalExitoRegistro').classList.remove('hidden');
+    
+    // Redirigir después de 3 segundos
     setTimeout(() => {
+      document.getElementById('modalExitoRegistro').classList.add('hidden');
       volverInicio();
     }, 3000);
   } catch (error) {
