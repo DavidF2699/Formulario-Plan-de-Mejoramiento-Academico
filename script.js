@@ -730,17 +730,9 @@ async function guardarFormulario(event) {
     ? document.getElementById('tituloCurso').value.toUpperCase() 
     : null;
   
-// ====== FORMATO FECHA COLOMBIA ======
   const ahora = new Date();
-  
-  // Obtener fecha y hora en zona horaria de Colombia (UTC-5)
-  const offsetColombia = -5 * 60; // UTC-5 en minutos
-  const offsetLocal = ahora.getTimezoneOffset();
-  const diferencia = (offsetLocal - offsetColombia) * 60 * 1000;
-  
-  const fechaColombia = new Date(ahora.getTime() - diferencia);
+  const fechaColombia = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
   const fechaISO = fechaColombia.toISOString();
-  // ====== FIN ======
   
   const datos = {
     documento: datosEstudiante.documento,
@@ -1060,25 +1052,18 @@ function generarExcelSimplificado(datos, nombreArchivo) {
   let csv = headers.join(',') + '\n';
   
   datos.forEach(fila => {
-    // ====== FORMATO FECHA COLOMBIA ======
     const fechaUTC = new Date(fila.fecha);
-    
-    // Ajustar a zona horaria Colombia (UTC-5)
     const fechaColombia = new Date(fechaUTC.getTime() - (5 * 60 * 60 * 1000));
     
-    // Formatear fecha DD/MM/YYYY
     const dia = String(fechaColombia.getUTCDate()).padStart(2, '0');
     const mes = String(fechaColombia.getUTCMonth() + 1).padStart(2, '0');
     const anio = fechaColombia.getUTCFullYear();
     const fechaFormateada = `${dia}/${mes}/${anio}`;
     
-    // Formatear hora HH:MM (formato 24 horas)
     const horas = String(fechaColombia.getUTCHours()).padStart(2, '0');
     const minutos = String(fechaColombia.getUTCMinutes()).padStart(2, '0');
-    const horaFormateada = `${horas}:${minutos}`;
-    // ====== FIN ======
-
-
+    const horaFormateada =`${horas}:${minutos}`;
+    
     const row = [
       fechaFormateada,
       horaFormateada,
@@ -1124,24 +1109,17 @@ function generarExcelCompleto(datos, nombreArchivo) {
   let csv = headers.join(',') + '\n';
   
   datos.forEach(fila => {
-    // ====== FORMATO FECHA COLOMBIA ======
     const fechaUTC = new Date(fila.fecha);
-    
-    // Ajustar a zona horaria Colombia (UTC-5)
     const fechaColombia = new Date(fechaUTC.getTime() - (5 * 60 * 60 * 1000));
     
-    // Formatear fecha DD/MM/YYYY
     const dia = String(fechaColombia.getUTCDate()).padStart(2, '0');
     const mes = String(fechaColombia.getUTCMonth() + 1).padStart(2, '0');
     const anio = fechaColombia.getUTCFullYear();
     const fechaFormateada = `${dia}/${mes}/${anio}`;
     
-    // Formatear hora HH:MM (formato 24 horas)
     const horas = String(fechaColombia.getUTCHours()).padStart(2, '0');
     const minutos = String(fechaColombia.getUTCMinutes()).padStart(2, '0');
     const horaFormateada = `${horas}:${minutos}`;
-    // ====== FIN ======
-
     
     const row = [
       fechaFormateada,
