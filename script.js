@@ -654,8 +654,16 @@ async function guardarFormulario(event) {
   const calificacionRadio = document.querySelector('input[name="calificacion"]:checked');
   
   if (!calificacionRadio) {
-    mostrarMensaje('mensajeFormulario', '⚠️ Por favor seleccione una calificación para la tutoría (del 1 al 5)', 'error');
+    // Mostrar mensaje de error que NO desaparezca automáticamente
+    const elemento = document.getElementById('mensajeFormulario');
+    elemento.innerHTML = '<div class="mensaje error">⚠️ Por favor seleccione una calificación para la tutoría (del 1 al 5)</div>';
     
+    // Scroll al mensaje
+    setTimeout(() => {
+      elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    
+    // Luego scroll y resaltar la sección de calificación
     setTimeout(() => {
       const grupoCalificacion = document.getElementById('grupoCalificacion');
       if (grupoCalificacion) {
@@ -670,15 +678,16 @@ async function guardarFormulario(event) {
         grupoCalificacion.style.border = '3px solid #ffc107';
         grupoCalificacion.style.transition = 'all 0.3s ease';
         
+        // Quitar el resaltado después de 5 segundos
         setTimeout(() => {
           grupoCalificacion.style.background = '';
           grupoCalificacion.style.padding = '';
           grupoCalificacion.style.border = '';
-        }, 3000);
+        }, 5000);
       }
-    }, 200);
+    }, 800);
     
-    return;
+    return; // DETENER aquí si no hay calificación
   }
   
   mostrarCargando('mensajeFormulario');
