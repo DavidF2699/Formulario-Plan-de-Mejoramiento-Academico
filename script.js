@@ -660,7 +660,7 @@ async function guardarFormulario(event) {
     
     // Asegurarse de que esté visible
     if (grupoCalificacion.classList.contains('hidden')) {
-      alert('Debe completar el formulario hasta la sección de calificación');
+      mostrarMensaje('mensajeFormulario', 'Debe completar el formulario hasta la sección de calificación', 'error');
       return;
     }
     
@@ -677,6 +677,9 @@ async function guardarFormulario(event) {
       grupoCalificacion.style.borderRadius = '8px';
       grupoCalificacion.style.border = '3px solid #ffc107';
       grupoCalificacion.style.transition = 'all 0.3s';
+      
+      // Mostrar mensaje de error adicional
+      mostrarMensaje('mensajeFormulario', 'Por favor, califique la tutoría antes de enviar el formulario', 'error');
       
       // Quitar resaltado después de 4 segundos
       setTimeout(() => {
