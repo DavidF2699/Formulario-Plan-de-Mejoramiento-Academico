@@ -255,11 +255,32 @@
 
     <!-- FORMULARIO DE TUTORÍA -->
     <div id="pantallaFormulario" class="hidden">
-      <h2 class="section-title">Registro de Asistencia</h2>
-      
-      <div class="user-greeting">
-        <p id="nombreUsuario"></p>
-      </div>
+  <h2 class="section-title">Registro de Asistencia</h2>
+  
+  <div class="user-greeting">
+    <p id="nombreUsuario"></p>
+  </div>
+  
+  <!-- ====== AGREGAR ESTO ====== -->
+  <div class="progress-indicator">
+    <div class="progress-step active" id="step1">
+      <div class="progress-circle">1</div>
+      <span class="progress-label">Datos básicos</span>
+    </div>
+    <div class="progress-step" id="step2">
+      <div class="progress-circle">2</div>
+      <span class="progress-label">Instructor</span>
+    </div>
+    <div class="progress-step" id="step3">
+      <div class="progress-circle">3</div>
+      <span class="progress-label">Materia</span>
+    </div>
+    <div class="progress-step" id="step4">
+      <div class="progress-circle">4</div>
+      <span class="progress-label">Calificación</span>
+    </div>
+  </div>
+  <!-- ====== FIN ====== -->
 
       <div id="mensajeFormulario"></div>
       <form id="formTutoria" onsubmit="guardarFormulario(event)">

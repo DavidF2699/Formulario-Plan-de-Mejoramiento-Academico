@@ -465,6 +465,11 @@ async function iniciarSesion(event) {
     document.getElementById('nombreUsuario').textContent = 'Bienvenido(a): ' + datosEstudiante.nombreCensurado;
     document.getElementById('mensajeFormulario').innerHTML = '';
     actualizarBotonCerrarSesion();
+
+    // ====== AGREGAR ESTO ======
+    actualizarProgreso(1); // Iniciar en paso 1
+    // ====== FIN ======
+
   } catch (error) {
     mostrarMensaje('mensajeLogin', 'Error de conexión: ' + error.message, 'error');
   }
@@ -506,7 +511,11 @@ function cargarInstructores() {
     option.setAttribute('data-area', inst.area);
     option.textContent = inst.nombre;
     selectInstructor.appendChild(option);
-  });
+});
+  
+  // ====== AGREGAR ESTO ======
+  actualizarProgreso(2);
+  // ====== FIN ======
 }
 
 // ===================================
@@ -536,6 +545,10 @@ function cargarMaterias() {
     option.textContent = mat.materia;
     selectMateria.appendChild(option);
   });
+  
+  // ====== AGREGAR ESTO ======
+  actualizarProgreso(3);
+  // ====== FIN ======
 }
 
 // ===================================
@@ -571,8 +584,12 @@ function cargarTemas() {
   document.getElementById('grupoSugerencias').classList.remove('hidden');
   document.getElementById('btnEnviar').classList.remove('hidden');
   
-  formularioEnviandose = true;
+  fformularioEnviandose = true;
   actualizarBotonCerrarSesion();
+  
+  // ====== AGREGAR ESTO ======
+  actualizarProgreso(4);
+  // ====== FIN ======
 }
 
 function toggleOtroTema() {
@@ -688,9 +705,18 @@ async function guardarFormulario(event) {
     ? document.getElementById('tituloCurso').value.toUpperCase() 
     : null;
   
+    
+// ====== FORMATO FECHA COLOMBIA ======
   const ahora = new Date();
-  const fechaColombia = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  
+  // Obtener fecha y hora en zona horaria de Colombia (UTC-5)
+  const offsetColombia = -5 * 60; // UTC-5 en minutos
+  const offsetLocal = ahora.getTimezoneOffset();
+  const diferencia = (offsetLocal - offsetColombia) * 60 * 1000;
+  
+  const fechaColombia = new Date(ahora.getTime() - diferencia);
   const fechaISO = fechaColombia.toISOString();
+  // ====== FIN ======
   
   const datos = {
     documento: datosEstudiante.documento,
@@ -1129,6 +1155,29 @@ function generarExcelCompleto(datos, nombreArchivo) {
 function cerrarSesionAdmin() {
   volverInicio();
 }
+
+
+
+// ===================================
+// ACTUALIZAR INDICADOR DE PROGRESO
+// ===================================
+function actualizarProgreso(paso) {
+  // Remover todas las clases active
+  document.querySelectorAll('.progress-step').forEach(step => {
+    step.classList.remove('active');
+  });
+  
+  // Marcar pasos completados
+  for (let i = 1; i < paso; i++) {
+    document.getElementById(`step${i}`).classList.add('completed');
+  }
+  
+  // Marcar paso actual
+  document.getElementById(`step${paso}`).classList.add('active');
+}
+
+
+
 
 // ===================================
 // INICIALIZACIÓN CON PRECARGA
