@@ -610,9 +610,11 @@ function toggleTituloCurso() {
 // BOTÓN CANCELAR Y CONFIRMACIÓN
 // ===================================
 function actualizarBotonCerrarSesion() {
-  const btnCerrar = document.querySelector('#pantallaFormulario .btn-secondary');
-  btnCerrar.textContent = 'Cancelar';
-  btnCerrar.onclick = confirmarCancelacion;
+  const btnCerrar = document.getElementById('btnCancelarFormulario');
+  if (btnCerrar) {
+    btnCerrar.textContent = 'Cancelar';
+    btnCerrar.onclick = confirmarCancelacion;
+  }
 }
 
 function confirmarCancelacion() {
@@ -656,24 +658,33 @@ async function guardarFormulario(event) {
   if (!calificacionRadio) {
     const grupoCalificacion = document.getElementById('grupoCalificacion');
     
+    // Asegurarse de que esté visible
+    if (grupoCalificacion.classList.contains('hidden')) {
+      alert('Debe completar el formulario hasta la sección de calificación');
+      return;
+    }
+    
     // Hacer scroll
     grupoCalificacion.scrollIntoView({ 
       behavior: 'smooth', 
       block: 'center' 
     });
     
-    // Resaltar
-    grupoCalificacion.style.background = '#fff3cd';
-    grupoCalificacion.style.padding = '20px';
-    grupoCalificacion.style.borderRadius = '8px';
-    grupoCalificacion.style.border = '3px solid #ffc107';
-    
-    // Quitar resaltado después de 3 segundos
+    // Esperar un poco antes de resaltar
     setTimeout(() => {
-      grupoCalificacion.style.background = '';
-      grupoCalificacion.style.padding = '';
-      grupoCalificacion.style.border = '';
-    }, 3000);
+      grupoCalificacion.style.background = '#fff3cd';
+      grupoCalificacion.style.padding = '20px';
+      grupoCalificacion.style.borderRadius = '8px';
+      grupoCalificacion.style.border = '3px solid #ffc107';
+      grupoCalificacion.style.transition = 'all 0.3s';
+      
+      // Quitar resaltado después de 4 segundos
+      setTimeout(() => {
+        grupoCalificacion.style.background = '';
+        grupoCalificacion.style.padding = '';
+        grupoCalificacion.style.border = '';
+      }, 4000);
+    }, 500);
     
     return;
   }
