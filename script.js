@@ -933,19 +933,23 @@ async function cargarEstadisticas() {
     });
     detalles += '</div>';
 
-   // Contenedor con botones tipo horarios para instructores
-    detalles += '<div class="chart-container">';
-    detalles += '<h3 class="chart-title">Cantidad de Tutorías por Instructor</h3>';
+    detalles += `<div class="chart-container">
+      <h3 class="chart-title">Cantidad de Tutorías por Instructor</h3>
+      
+      <div class="botones-sedes">
+        <button class="btn btn-secondary btn-sede" onclick="toggleInstructoresSede('norte')">
+          Sede Norte
+        </button>
+        <button class="btn btn-secondary btn-sede" onclick="toggleInstructoresSede('sur')">
+          Sede Sur
+        </button>
+      </div>
+
+      <div id="instructoresNorteAdmin" class="horario-info hidden">
+        <h4 class="horario-titulo">Sede Norte</h4>`;
     
-    // Botones de sedes
-    detalles += '<div class="botones-sedes">';
-    detalles += '<button class="btn btn-secondary btn-sede" onclick="toggleInstructoresSede(\'norte\')">Sede Norte</button>';
-    detalles += '<button class="btn btn-secondary btn-sede" onclick="toggleInstructoresSede(\'sur\')">Sede Sur</button>';
-    detalles += '</div>';
-    
-    // Lista Sede Norte
-    detalles += '<div id="instructoresNorte" class="horario-info hidden">';
-    detalles += '<h4 class="horario-titulo">Sede Norte</h4>';
+    const instructoresNorte = Object.entries(stats.instructoresPorSede.Norte || {})
+      .sort((a, b) => b[1] - a[1]);
     if (instructoresNorte.length > 0) {
       instructoresNorte.forEach(([instructor, cantidad]) => {
         const promedio = promediosPorInstructor[instructor] || 'N/A';
@@ -957,11 +961,14 @@ async function cargarEstadisticas() {
     } else {
       detalles += '<p style="text-align: center; color: #666;">No hay instructores en Sede Norte</p>';
     }
-    detalles += '</div>';
     
-    // Lista Sede Sur
-    detalles += '<div id="instructoresSur" class="horario-info hidden">';
-    detalles += '<h4 class="horario-titulo">Sede Sur</h4>';
+    detalles += `</div>
+
+      <div id="instructoresSurAdmin" class="horario-info hidden">
+        <h4 class="horario-titulo">Sede Sur</h4>`;
+    
+    const instructoresSur = Object.entries(stats.instructoresPorSede.Sur || {})
+      .sort((a, b) => b[1] - a[1]);
     if (instructoresSur.length > 0) {
       instructoresSur.forEach(([instructor, cantidad]) => {
         const promedio = promediosPorInstructor[instructor] || 'N/A';
@@ -973,9 +980,8 @@ async function cargarEstadisticas() {
     } else {
       detalles += '<p style="text-align: center; color: #666;">No hay instructores en Sede Sur</p>';
     }
-    detalles += '</div>';
     
-    detalles += '</div>';
+    detalles += '</div></div>';
 
     document.getElementById('detallesStats').innerHTML = detalles;
   } catch (error) {
@@ -1212,18 +1218,17 @@ function actualizarProgreso(paso) {
 }
 
 
-
 // ===================================
-// TOGGLE INSTRUCTORES POR SEDE
+// TOGGLE INSTRUCTORES POR SEDE EN ADMIN
 // ===================================
 function toggleInstructoresSede(sede) {
-  document.getElementById('instructoresNorte').classList.add('hidden');
-  document.getElementById('instructoresSur').classList.add('hidden');
+  document.getElementById('instructoresNorteAdmin').classList.add('hidden');
+  document.getElementById('instructoresSurAdmin').classList.add('hidden');
   
   if (sede === 'norte') {
-    document.getElementById('instructoresNorte').classList.toggle('hidden');
+    document.getElementById('instructoresNorteAdmin').classList.toggle('hidden');
   } else if (sede === 'sur') {
-    document.getElementById('instructoresSur').classList.toggle('hidden');
+    document.getElementById('instructoresSurAdmin').classList.toggle('hidden');
   }
 }
 
