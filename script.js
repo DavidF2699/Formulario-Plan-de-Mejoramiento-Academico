@@ -712,7 +712,7 @@ async function guardarFormulario(event) {
         grupoCalificacion.style.padding = '';
         grupoCalificacion.style.border = '';
         grupoCalificacion.style.boxShadow = '';
-      }, 5000);
+      }, 2000);
     }, 600);
     
     return; // Detener el envío del formulario
