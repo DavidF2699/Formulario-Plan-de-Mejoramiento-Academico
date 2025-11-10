@@ -1035,9 +1035,8 @@ async function descargarTodo() {
 function generarExcelSimplificado(datos, nombreArchivo) {
   const headers = ['Fecha', 'Hora', 'Documento', 'Nombres', 'Apellidos', 'Programa', 'Instructor', 'Asignatura', 'Tema'];
   
-  let csv = headers.join(',') + '\n';
-  
-  datos.forEach(fila => {
+  // Preparar los datos
+  const datosExcel = datos.map(fila => {
     const fechaUTC = new Date(fila.fecha);
     const fechaColombia = new Date(fechaUTC.getTime() - (5 * 60 * 60 * 1000));
     
@@ -1050,51 +1049,66 @@ function generarExcelSimplificado(datos, nombreArchivo) {
     const minutos = String(fechaColombia.getUTCMinutes()).padStart(2, '0');
     const horaFormateada = `${horas}:${minutos}`;
     
-    const row = [
-      fechaFormateada,
-      horaFormateada,
-      fila.documento,
-      fila.nombres,
-      fila.apellidos,
-      fila.programa,
-      fila.instructor,
-      fila.asignatura,
-      fila.tema
-    ];
-    
-    const rowFormateada = row.map(celda => {
-      const celdaStr = String(celda);
-      if (celdaStr.includes(',') || celdaStr.includes('"') || celdaStr.includes('\n')) {
-        return '"' + celdaStr.replace(/"/g, '""') + '"';
-      }
-      return celdaStr;
-    });
-    
-    csv += rowFormateada.join(',') + '\n';
+    return {
+      'Fecha': fechaFormateada,
+      'Hora': horaFormateada,
+      'Documento': fila.documento,
+      'Nombres': fila.nombres,
+      'Apellidos': fila.apellidos,
+      'Programa': fila.programa,
+      'Instructor': fila.instructor,
+      'Asignatura': fila.asignatura,
+      'Tema': fila.tema
+    };
   });
 
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  
+  // Crear libro de trabajo
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(datosExcel);
+
+  // Aplicar estilo a los encabezados (primera fila)
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let col = range.s.c; col <= range.e.c; col++) {
+    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (!ws[cellAddress]) continue;
+    
+    ws[cellAddress].s = {
+      fill: { fgColor: { rgb: "1E3C72" } },
+      font: { color: { rgb: "FFFFFF" }, bold: true },
+      alignment: { horizontal: "center", vertical: "center" }
+    };
+  }
+
+  // Agregar autofiltro
+  ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
+
+  // Ajustar ancho de columnas
+  ws['!cols'] = [
+    { wch: 12 }, // Fecha
+    { wch: 8 },  // Hora
+    { wch: 12 }, // Documento
+    { wch: 20 }, // Nombres
+    { wch: 20 }, // Apellidos
+    { wch: 35 }, // Programa
+    { wch: 25 }, // Instructor
+    { wch: 30 }, // Asignatura
+    { wch: 30 }  // Tema
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "Registros");
+
+  // Descargar el archivo
   const fechaHoy = new Date().toISOString().split('T')[0];
-  link.setAttribute('href', url);
-  link.setAttribute('download', `${nombreArchivo}_${fechaHoy}.csv`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  XLSX.writeFile(wb, `${nombreArchivo}_${fechaHoy}.xlsx`);
 }
 
 function generarExcelCompleto(datos, nombreArchivo) {
   const headers = ['Fecha', 'Hora', 'Documento', 'Nombres', 'Apellidos', 'Facultad', 'Programa', 'Semestre', 'Grupo', 
-                  'Tipo Acompañamiento', 'Título Curso', 'Sede Estudiante', 'Sede Tutoría', 'Tipo Instructor', 'Instructor', 'Asignatura', 'Tema', 
-                  'Motivo Consulta', 'Calificación', 'Sugerencias'];
+                  'Tipo Acompañamiento', 'Título Curso', 'Sede Estudiante', 'Sede Tutoría', 'Tipo Instructor', 'Instructor', 
+                  'Asignatura', 'Tema', 'Motivo Consulta', 'Calificación', 'Sugerencias'];
   
-  let csv = headers.join(',') + '\n';
-  
-  datos.forEach(fila => {
+  // Preparar los datos
+  const datosExcel = datos.map(fila => {
     const fechaUTC = new Date(fila.fecha);
     const fechaColombia = new Date(fechaUTC.getTime() - (5 * 60 * 60 * 1000));
     
@@ -1107,52 +1121,63 @@ function generarExcelCompleto(datos, nombreArchivo) {
     const minutos = String(fechaColombia.getUTCMinutes()).padStart(2, '0');
     const horaFormateada = `${horas}:${minutos}`;
     
-    const row = [
-      fechaFormateada,
-      horaFormateada,
-      fila.documento,
-      fila.nombres,
-      fila.apellidos,
-      fila.facultad,
-      fila.programa,
-      fila.semestre,
-      fila.grupo,
-      fila.tipo_acompanamiento || 'Tutoría',
-      fila.titulo_curso || '',
-      fila.sede_estudiante || '',
-      fila.sede_tutoria,
-      fila.tipo_instructor,
-      fila.instructor,
-      fila.asignatura,
-      fila.tema,
-      fila.motivo_consulta || '',
-      fila.calificacion,
-      fila.sugerencias || ''
-    ];
-    
-    const rowFormateada = row.map(celda => {
-      const celdaStr = String(celda);
-      if (celdaStr.includes(',') || celdaStr.includes('"') || celdaStr.includes('\n')) {
-        return '"' + celdaStr.replace(/"/g, '""') + '"';
-      }
-      return celdaStr;
-    });
-    
-    csv += rowFormateada.join(',') + '\n';
+    return {
+      'Fecha': fechaFormateada,
+      'Hora': horaFormateada,
+      'Documento': fila.documento,
+      'Nombres': fila.nombres,
+      'Apellidos': fila.apellidos,
+      'Facultad': fila.facultad,
+      'Programa': fila.programa,
+      'Semestre': fila.semestre,
+      'Grupo': fila.grupo,
+      'Tipo Acompañamiento': fila.tipo_acompanamiento || 'Tutoría',
+      'Título Curso': fila.titulo_curso || '',
+      'Sede Estudiante': fila.sede_estudiante || '',
+      'Sede Tutoría': fila.sede_tutoria,
+      'Tipo Instructor': fila.tipo_instructor,
+      'Instructor': fila.instructor,
+      'Asignatura': fila.asignatura,
+      'Tema': fila.tema,
+      'Motivo Consulta': fila.motivo_consulta || '',
+      'Calificación': fila.calificacion,
+      'Sugerencias': fila.sugerencias || ''
+    };
   });
 
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  
+  // Crear libro de trabajo
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(datosExcel);
+
+  // Aplicar estilo a los encabezados (primera fila)
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let col = range.s.c; col <= range.e.c; col++) {
+    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (!ws[cellAddress]) continue;
+    
+    ws[cellAddress].s = {
+      fill: { fgColor: { rgb: "1E3C72" } },
+      font: { color: { rgb: "FFFFFF" }, bold: true },
+      alignment: { horizontal: "center", vertical: "center" }
+    };
+  }
+
+  // Agregar autofiltro
+  ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
+
+  // Ajustar ancho de columnas
+  ws['!cols'] = [
+    { wch: 12 }, { wch: 8 }, { wch: 12 }, { wch: 20 }, { wch: 20 },
+    { wch: 35 }, { wch: 35 }, { wch: 10 }, { wch: 10 }, { wch: 20 },
+    { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 25 },
+    { wch: 30 }, { wch: 30 }, { wch: 25 }, { wch: 12 }, { wch: 40 }
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "Registros Completos");
+
+  // Descargar el archivo
   const fechaHoy = new Date().toISOString().split('T')[0];
-  link.setAttribute('href', url);
-  link.setAttribute('download', `${nombreArchivo}_${fechaHoy}.csv`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  XLSX.writeFile(wb, `${nombreArchivo}_${fechaHoy}.xlsx`);
 }
 
 function cerrarSesionAdmin() {
