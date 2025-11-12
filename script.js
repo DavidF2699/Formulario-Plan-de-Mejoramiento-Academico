@@ -654,6 +654,20 @@ function toggleSugerencias() {
   }
 }
 
+// Agregar listener para calificación
+document.addEventListener('DOMContentLoaded', function() {
+  const calificaciones = document.querySelectorAll('input[name="calificacion"]');
+  calificaciones.forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.checked) {
+        document.getElementById('step4').classList.add('completed');
+        document.getElementById('step4').classList.remove('active');
+      }
+    });
+  });
+});
+
+
 function toggleTituloCurso() {
   const tipoAcompanamiento = document.getElementById('tipoAcompanamiento').value;
   const grupoTituloCurso = document.getElementById('grupoTituloCurso');
@@ -767,11 +781,9 @@ async function guardarFormulario(event) {
     ? document.getElementById('tituloCurso').value.toUpperCase() 
     : null;
   
+// Obtener fecha y hora actual en Colombia (UTC-5)
   const ahora = new Date();
-  const offsetColombia = -5 * 60;
-  const offsetLocal = ahora.getTimezoneOffset();
-  const diferencia = (offsetLocal - offsetColombia) * 60 * 1000;
-  const fechaColombia = new Date(ahora.getTime() - diferencia);
+  const fechaColombia = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
   const fechaISO = fechaColombia.toISOString();
   
   // Obtener el valor de facultad_departamento (puede estar vacío si es tutor)
@@ -1139,28 +1151,28 @@ async function descargarTodo() {
 }
 
 function generarExcelSimplificado(datos, nombreArchivo) {
-  const headers = ['Fecha', 'Hora', 'Documento', 'Nombres', 'Apellidos', 'Programa', 'Instructor', 'Asignatura', 'Tema'];
-  
   const datosExcel = datos.map(fila => {
+    // Convertir fecha UTC a hora de Colombia
     const fechaUTC = new Date(fila.fecha);
-    const fechaColombia = new Date(fechaUTC.getTime() - (5 * 60 * 60 * 1000));
+    const fechaColombia = new Date(fechaUTC.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
     
-    const dia = String(fechaColombia.getUTCDate()).padStart(2, '0');
-    const mes = String(fechaColombia.getUTCMonth() + 1).padStart(2, '0');
-    const anio = fechaColombia.getUTCFullYear();
-    const fechaFormateada = `${dia}/${mes}/${anio}`;
+    const mes = String(fechaColombia.getMonth() + 1).padStart(2, '0');
+    const dia = String(fechaColombia.getDate()).padStart(2, '0');
+    const anio = fechaColombia.getFullYear();
+    const fechaFormateada = `${mes}/${dia}/${anio}`;
     
-    const horas = String(fechaColombia.getUTCHours()).padStart(2, '0');
-    const minutos = String(fechaColombia.getUTCMinutes()).padStart(2, '0');
+    const horas = String(fechaColombia.getHours()).padStart(2, '0');
+    const minutos = String(fechaColombia.getMinutes()).padStart(2, '0');
     const horaFormateada = `${horas}:${minutos}`;
     
     return {
       'Fecha': fechaFormateada,
       'Hora': horaFormateada,
-      'Documento': fila.documento,
+      'Documento': parseInt(fila.documento),
       'Nombres': fila.nombres,
       'Apellidos': fila.apellidos,
       'Programa': fila.programa,
+      'Tipo Instructor': fila.tipo_instructor,
       'Instructor': fila.instructor,
       'Asignatura': fila.asignatura,
       'Tema': fila.tema
@@ -1171,6 +1183,17 @@ function generarExcelSimplificado(datos, nombreArchivo) {
   const ws = XLSX.utils.json_to_sheet(datosExcel);
 
   const range = XLSX.utils.decode_range(ws['!ref']);
+  
+  // Aplicar formato a documento y grupo como número
+  for (let row = 1; row <= range.e.r; row++) {
+    const docCell = XLSX.utils.encode_cell({ r: row, c: 2 }); // Columna Documento
+    if (ws[docCell]) {
+      ws[docCell].t = 'n'; // Tipo numérico
+      ws[docCell].z = '0'; // Formato sin decimales
+    }
+  }
+  
+  // Estilo de encabezados
   for (let col = range.s.c; col <= range.e.c; col++) {
     const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
     if (!ws[cellAddress]) continue;
@@ -1186,7 +1209,7 @@ function generarExcelSimplificado(datos, nombreArchivo) {
 
   ws['!cols'] = [
     { wch: 12 }, { wch: 8 }, { wch: 12 }, { wch: 20 }, { wch: 20 },
-    { wch: 35 }, { wch: 25 }, { wch: 30 }, { wch: 30 }
+    { wch: 35 }, { wch: 15 }, { wch: 25 }, { wch: 30 }, { wch: 30 }
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "Registros");
@@ -1196,27 +1219,24 @@ function generarExcelSimplificado(datos, nombreArchivo) {
 }
 
 function generarExcelCompleto(datos, nombreArchivo) {
-  const headers = ['Fecha', 'Hora', 'Documento', 'Nombres', 'Apellidos', 'Facultad', 'Programa', 'Semestre', 'Grupo', 
-                  'Tipo Acompañamiento', 'Título Curso', 'Sede Estudiante', 'Sede Tutoría', 'Tipo Instructor', 
-                  'Facultad/Departamento', 'Instructor', 'Asignatura', 'Tema', 'Motivo Consulta', 'Calificación', 'Sugerencias'];
-  
   const datosExcel = datos.map(fila => {
+    // Convertir fecha UTC a hora de Colombia
     const fechaUTC = new Date(fila.fecha);
-    const fechaColombia = new Date(fechaUTC.getTime() - (5 * 60 * 60 * 1000));
+    const fechaColombia = new Date(fechaUTC.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
     
-    const dia = String(fechaColombia.getUTCDate()).padStart(2, '0');
-    const mes = String(fechaColombia.getUTCMonth() + 1).padStart(2, '0');
-    const anio = fechaColombia.getUTCFullYear();
-    const fechaFormateada = `${dia}/${mes}/${anio}`;
+    const mes = String(fechaColombia.getMonth() + 1).padStart(2, '0');
+    const dia = String(fechaColombia.getDate()).padStart(2, '0');
+    const anio = fechaColombia.getFullYear();
+    const fechaFormateada = `${mes}/${dia}/${anio}`;
     
-    const horas = String(fechaColombia.getUTCHours()).padStart(2, '0');
-    const minutos = String(fechaColombia.getUTCMinutes()).padStart(2, '0');
+    const horas = String(fechaColombia.getHours()).padStart(2, '0');
+    const minutos = String(fechaColombia.getMinutes()).padStart(2, '0');
     const horaFormateada = `${horas}:${minutos}`;
     
     return {
       'Fecha': fechaFormateada,
       'Hora': horaFormateada,
-      'Documento': fila.documento,
+      'Documento': parseInt(fila.documento),
       'Nombres': fila.nombres,
       'Apellidos': fila.apellidos,
       'Facultad': fila.facultad,
@@ -1242,6 +1262,17 @@ function generarExcelCompleto(datos, nombreArchivo) {
   const ws = XLSX.utils.json_to_sheet(datosExcel);
 
   const range = XLSX.utils.decode_range(ws['!ref']);
+  
+  // Aplicar formato a documento y grupo como número
+  for (let row = 1; row <= range.e.r; row++) {
+    const docCell = XLSX.utils.encode_cell({ r: row, c: 2 }); // Columna Documento
+    if (ws[docCell]) {
+      ws[docCell].t = 'n'; // Tipo numérico
+      ws[docCell].z = '0'; // Formato sin decimales
+    }
+  }
+  
+  // Estilo de encabezados
   for (let col = range.s.c; col <= range.e.c; col++) {
     const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
     if (!ws[cellAddress]) continue;
