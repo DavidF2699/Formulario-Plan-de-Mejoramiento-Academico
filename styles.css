@@ -1093,7 +1093,7 @@ textarea {
   display: flex !important;
   flex-direction: row !important;
   gap: 10px;
-  justify-content: center;
+  justify-content: stretch;
   margin-bottom: 25px;
   flex-wrap: nowrap;
   width: 100%;
@@ -1101,12 +1101,14 @@ textarea {
 
 .botones-sedes.estadisticas-menu .btn-sede {
   flex: 1;
-  min-width: 100px;
-  max-width: 200px;
-  padding: 12px 20px;
-  font-size: 14px;
+  min-width: 0;
+  max-width: none;
+  padding: 15px 20px;
+  font-size: 15px;
+  font-weight: 600;
   margin: 0;
   transition: all 0.3s;
+  white-space: nowrap;
 }
 
 /* Botón activo en azul */
@@ -1121,15 +1123,35 @@ textarea {
   border-color: #2a5298;
 }
 
+/* Contenedor de estadísticas */
+#contenidoEstadisticas {
+  width: 100%;
+  margin-top: 0;
+}
+
+#contenidoEstadisticas .stats-grid {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .botones-sedes.estadisticas-menu {
+    gap: 8px;
+  }
+  
+  .botones-sedes.estadisticas-menu .btn-sede {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+}
+
 @media (max-width: 480px) {
   .botones-sedes.estadisticas-menu {
-    flex-wrap: nowrap !important;
     gap: 6px;
   }
   
   .botones-sedes.estadisticas-menu .btn-sede {
-    min-width: 80px;
-    padding: 10px 12px;
+    padding: 10px 8px;
     font-size: 12px;
   }
 }
