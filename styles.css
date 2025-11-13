@@ -1086,21 +1086,36 @@ textarea {
 }
 
 
-
 /* ===================================
-   BOTONES DE ESTADÍSTICAS
+   BOTONES DE ESTADÍSTICAS - FORZAR HORIZONTAL
    =================================== */
 .botones-sedes.estadisticas-menu {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 8px;
   justify-content: center;
   margin-bottom: 25px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .botones-sedes.estadisticas-menu .btn-sede {
-  flex: 0 1 auto;
-  min-width: 100px;
-  padding: 10px 20px;
+  flex: 1;
+  min-width: 90px;
+  max-width: 120px;
+  padding: 10px 15px;
   font-size: 13px;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .botones-sedes.estadisticas-menu {
+    flex-wrap: nowrap !important;
+    gap: 6px;
+  }
+  
+  .botones-sedes.estadisticas-menu .btn-sede {
+    min-width: 70px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
 }
