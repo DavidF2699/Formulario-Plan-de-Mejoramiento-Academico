@@ -1140,93 +1140,93 @@ function mostrarEstadisticas(tipo, botonClickeado) {
   }
 
   
+  
   // PROFESORES: Mostrar por facultad/departamento con profesores agrupados
-  if (tipo === 'profesores') {
-    detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Asesorías por Facultad/Departamento</h3>';
+if (tipo === 'profesores') {
+  detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Asesorías por Facultad/Departamento</h3>';
+  
+  const facultadesOrdenadas = Object.entries(stats.facultadDepartamento)
+    .sort((a, b) => b[1] - a[1]);
+  
+  if (facultadesOrdenadas.length > 0) {
+    facultadesOrdenadas.forEach(([facultad, cantidad]) => {
+      const nombreCompleto = obtenerNombreFacultad(facultad);
+      const porcentaje = ((cantidad / stats.total) * 100).toFixed(1);
+      detalles += `<div class="list-item"><span>${nombreCompleto}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
+    });
+  } else {
+    detalles += '<p style="text-align: center; color: #666;">No hay datos por facultad</p>';
+  }
+  
+  detalles += '</div>';
+
+  // Cantidad de Asesorías por Profesor agrupados por Facultad/Departamento
+  detalles += `<div class="chart-container">
+    <h3 class="chart-title">Cantidad de Asesorías por Profesor</h3>`;
+
+  // Agrupar profesores por facultad/departamento
+  const profesoresPorFacultad = {};
+  
+  datosFiltrados.forEach(item => {
+    const facultad = item.facultad_departamento || 'Sin Facultad';
+    const profesor = item.instructor;
     
-    const facultadesOrdenadas = Object.entries(stats.facultadDepartamento)
-      .sort((a, b) => b[1] - a[1]);
-    
-if (facultadesOrdenadas.length > 0) {
-      facultadesOrdenadas.forEach(([facultad, cantidad]) => {
-        const nombreCompleto = obtenerNombreFacultad(facultad);
-        const porcentaje = ((cantidad / stats.total) * 100).toFixed(1);
-        detalles += `<div class="list-item"><span>${nombreCompleto}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
-      });
-    } else {
-      detalles += '<p style="text-align: center; color: #666;">No hay datos por facultad</p>';
+    if (!profesoresPorFacultad[facultad]) {
+      profesoresPorFacultad[facultad] = {};
     }
+    
+    profesoresPorFacultad[facultad][profesor] = (profesoresPorFacultad[facultad][profesor] || 0) + 1;
+  });
+
+  const facultadesConProfesores = Object.keys(profesoresPorFacultad).sort();
+  
+  // Crear botones para cada facultad/departamento
+  if (facultadesConProfesores.length > 0) {
+    detalles += '<div class="botones-sedes">';
+    
+    facultadesConProfesores.forEach(facultad => {
+      const facultadId = facultad.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const nombreCompleto = obtenerNombreFacultad(facultad);
+      const facultadCorta = nombreCompleto.replace('Facultad de ', '').replace('Departamento de ', '');
+      detalles += `
+        <button class="btn btn-secondary btn-sede" onclick="toggleProfesoresFacultad('${facultadId}')">
+          ${facultadCorta}
+        </button>`;
+    });
     
     detalles += '</div>';
 
-    // Nueva sección: Cantidad de Asesorías por Profesor agrupados por Facultad/Departamento
-    detalles += `<div class="chart-container">
-      <h3 class="chart-title">Cantidad de Asesorías por Profesor</h3>`;
-
-    // Agrupar profesores por facultad/departamento
-    const profesoresPorFacultad = {};
-    
-    datosFiltrados.forEach(item => {
-      const facultad = item.facultad_departamento || 'Sin Facultad';
-      const profesor = item.instructor;
+    // Crear secciones ocultas para cada facultad con sus profesores
+    facultadesConProfesores.forEach(facultad => {
+      const facultadId = facultad.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const profesores = profesoresPorFacultad[facultad];
+      const profesoresOrdenados = Object.entries(profesores).sort((a, b) => b[1] - a[1]);
       
-      if (!profesoresPorFacultad[facultad]) {
-        profesoresPorFacultad[facultad] = {};
+      const nombreCompletoTitulo = obtenerNombreFacultad(facultad);
+      detalles += `
+        <div id="profesores${facultadId}" class="horario-info hidden">
+          <h4 class="horario-titulo">${nombreCompletoTitulo}</h4>`;
+      
+      if (profesoresOrdenados.length > 0) {
+        profesoresOrdenados.forEach(([profesor, cantidad]) => {
+          const promedio = promediosPorInstructor[profesor] || 'N/A';
+          detalles += `<div class="list-item">
+            <span>${profesor}</span>
+            <strong>${cantidad} asesorías<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
+          </div>`;
+        });
+      } else {
+        detalles += '<p style="text-align: center; color: #666;">No hay profesores en esta facultad</p>';
       }
       
-      profesoresPorFacultad[facultad][profesor] = (profesoresPorFacultad[facultad][profesor] || 0) + 1;
-    });
-
-    // Crear ID único para cada facultad (sin espacios ni caracteres especiales)
-    const facultadesConProfesores = Object.keys(profesoresPorFacultad).sort();
-    
-    // Crear botones para cada facultad/departamento
-    if (facultadesConProfesores.length > 0) {
-      detalles += '<div class="botones-sedes">';
-      
-      facultadesConProfesores.forEach(facultad => {
-        const facultadId = facultad.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-        const nombreCompleto = obtenerNombreFacultad(facultad);
-        const facultadCorta = nombreCompleto.replace('Facultad de ', '').replace('Departamento de ', '');
-        detalles += `
-          <button class="btn btn-secondary btn-sede" onclick="toggleProfesoresFacultad('${facultadId}')">
-            ${facultadCorta}
-          </button>`;
-      });
-      
       detalles += '</div>';
-
-      // Crear secciones ocultas para cada facultad con sus profesores
-      facultadesConProfesores.forEach(facultad => {
-        const facultadId = facultad.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-        const profesores = profesoresPorFacultad[facultad];
-        const profesoresOrdenados = Object.entries(profesores).sort((a, b) => b[1] - a[1]);
-        
-        const nombreCompletoTitulo = obtenerNombreFacultad(facultad);
-        detalles += `
-          <div id="profesores${facultadId}" class="horario-info hidden">
-            <h4 class="horario-titulo">${nombreCompletoTitulo}</h4>`;
-        
-        if (profesoresOrdenados.length > 0) {
-          profesoresOrdenados.forEach(([profesor, cantidad]) => {
-            const promedio = promediosPorInstructor[profesor] || 'N/A';
-            detalles += `<div class="list-item">
-              <span>${profesor}</span>
-              <strong>${cantidad} asesorías<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
-            </div>`;
-          });
-        } else {
-          detalles += '<p style="text-align: center; color: #666;">No hay profesores en esta facultad</p>';
-        }
-        
-        detalles += '</div>';
-      });
-    } else {
-      detalles += '<p style="text-align: center; color: #666;">No hay datos de profesores disponibles</p>';
-    }
-    
-    detalles += '</div>';
+    });
+  } else {
+    detalles += '<p style="text-align: center; color: #666;">No hay datos de profesores disponibles</p>';
   }
+  
+  detalles += '</div>';
+}
 
   document.getElementById('detallesStats').innerHTML = detalles;
 }
@@ -1602,6 +1602,21 @@ function toggleProfesoresFacultad(facultadId) {
   }
 }
 
+
+
+// ===================================
+// FUNCIÓN AUXILIAR PARA NOMBRES DE FACULTAD
+// ===================================
+function obtenerNombreFacultad(codigo) {
+  const nombres = {
+    'DCB': 'Departamento de Ciencias Básicas',
+    'FCE': 'Facultad de Ciencias Empresariales',
+    'FCSH': 'Facultad de Ciencias Sociales y Humanas',
+    'FEDV': 'Facultad de Educación a Distancia y Virtual',
+    'FI': 'Facultad de Ingeniería'
+  };
+  return nombres[codigo] || codigo;
+}
 
 // ===================================
 // INICIALIZACIÓN
