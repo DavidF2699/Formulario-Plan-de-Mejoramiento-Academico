@@ -910,80 +910,123 @@ async function cargarEstadisticas() {
       return;
     }
 
-    // FILTRAR SOLO TUTORES (excluir profesores)
-    const soloTutores = data.filter(item => item.tipo_instructor === 'Tutor');
+    // Crear HTML con botones de filtro
+    const botonesHTML = `
+      <div class="botones-sedes" style="margin-bottom: 25px;">
+        <button class="btn btn-secondary btn-sede" onclick="mostrarEstadisticas('general')">
+          General
+        </button>
+        <button class="btn btn-secondary btn-sede" onclick="mostrarEstadisticas('tutores')">
+          Tutores
+        </button>
+        <button class="btn btn-secondary btn-sede" onclick="mostrarEstadisticas('profesores')">
+          Profesores
+        </button>
+      </div>
+      <div id="contenidoEstadisticas"></div>
+    `;
 
-    if (soloTutores.length === 0) {
-      document.getElementById('statsGrid').innerHTML = '<p style="text-align: center; color: #666;">No hay datos de tutorías disponibles aún.</p>';
-      return;
+    document.getElementById('statsGrid').innerHTML = botonesHTML;
+    document.getElementById('detallesStats').innerHTML = '';
+
+    // Guardar datos globalmente para uso posterior
+    window.datosFormulariosGlobal = data;
+
+    // Mostrar estadísticas generales por defecto
+    mostrarEstadisticas('general');
+
+  } catch (error) {
+    console.error('Error cargando estadísticas:', error);
+  }
+}
+
+function mostrarEstadisticas(tipo) {
+  const data = window.datosFormulariosGlobal;
+  
+  let datosFiltrados;
+  
+  if (tipo === 'tutores') {
+    datosFiltrados = data.filter(item => item.tipo_instructor === 'Tutor');
+  } else if (tipo === 'profesores') {
+    datosFiltrados = data.filter(item => item.tipo_instructor === 'Profesor');
+  } else {
+    // General: todos los datos
+    datosFiltrados = data;
+  }
+
+  if (datosFiltrados.length === 0) {
+    document.getElementById('contenidoEstadisticas').innerHTML = `<p style="text-align: center; color: #666;">No hay datos de ${tipo} disponibles aún.</p>`;
+    document.getElementById('detallesStats').innerHTML = '';
+    return;
+  }
+
+  const stats = {
+    total: datosFiltrados.length,
+    instructoresPorSede: { Norte: {}, Sur: {} },
+    sedesTutorias: {},
+    calificacionesPorInstructor: {},
+    facultadDepartamento: {},
+    sumaCalificaciones: 0
+  };
+
+  datosFiltrados.forEach(item => {
+    const sede = item.sede_tutoria;
+    const instructor = item.instructor;
+    
+    if (!stats.instructoresPorSede[sede]) {
+      stats.instructoresPorSede[sede] = {};
     }
+    stats.instructoresPorSede[sede][instructor] = (stats.instructoresPorSede[sede][instructor] || 0) + 1;
 
-    const stats = {
-      total: soloTutores.length,
-      instructoresPorSede: { Norte: {}, Sur: {} },
-      sedesTutorias: {},
-      calificacionesPorInstructor: {},
-      sumaCalificaciones: 0
-    };
+    stats.sedesTutorias[sede] = (stats.sedesTutorias[sede] || 0) + 1;
 
-    soloTutores.forEach(item => {
-      const sede = item.sede_tutoria;
-      const instructor = item.instructor;
-      
-      if (!stats.instructoresPorSede[sede]) {
-        stats.instructoresPorSede[sede] = {};
-      }
-      stats.instructoresPorSede[sede][instructor] = (stats.instructoresPorSede[sede][instructor] || 0) + 1;
+    if (!stats.calificacionesPorInstructor[instructor]) {
+      stats.calificacionesPorInstructor[instructor] = { suma: 0, cantidad: 0 };
+    }
+    stats.calificacionesPorInstructor[instructor].suma += item.calificacion;
+    stats.calificacionesPorInstructor[instructor].cantidad += 1;
 
-      stats.sedesTutorias[sede] = (stats.sedesTutorias[sede] || 0) + 1;
+    stats.sumaCalificaciones += item.calificacion;
 
-      if (!stats.calificacionesPorInstructor[instructor]) {
-        stats.calificacionesPorInstructor[instructor] = { suma: 0, cantidad: 0 };
-      }
-      stats.calificacionesPorInstructor[instructor].suma += item.calificacion;
-      stats.calificacionesPorInstructor[instructor].cantidad += 1;
+    // Para profesores: contar por facultad/departamento
+    if (tipo === 'profesores' && item.facultad_departamento) {
+      stats.facultadDepartamento[item.facultad_departamento] = (stats.facultadDepartamento[item.facultad_departamento] || 0) + 1;
+    }
+  });
 
-      stats.sumaCalificaciones += item.calificacion;
-    });
+  const promedioCalificacion = (stats.sumaCalificaciones / stats.total).toFixed(2);
 
-    const promedioCalificacion = (stats.sumaCalificaciones / stats.total).toFixed(2);
+  const promediosPorInstructor = {};
+  Object.keys(stats.calificacionesPorInstructor).forEach(instructor => {
+    const info = stats.calificacionesPorInstructor[instructor];
+    promediosPorInstructor[instructor] = (info.suma / info.cantidad).toFixed(2);
+  });
 
-    const promediosPorInstructor = {};
-    Object.keys(stats.calificacionesPorInstructor).forEach(instructor => {
-      const info = stats.calificacionesPorInstructor[instructor];
-      promediosPorInstructor[instructor] = (info.suma / info.cantidad).toFixed(2);
-    });
-
-    // Encontrar el mejor TUTOR con mejor promedio
-    let mejorInstructor = { nombre: '', promedio: 0, cantidad: 0 };
+  // Encontrar el mejor instructor con mejor promedio
+  let mejorInstructor = { nombre: '', promedio: 0, cantidad: 0 };
+  
+  Object.keys(stats.calificacionesPorInstructor).forEach(instructor => {
+    const info = stats.calificacionesPorInstructor[instructor];
+    const promedio = parseFloat((info.suma / info.cantidad).toFixed(2));
     
-    Object.keys(stats.calificacionesPorInstructor).forEach(instructor => {
-      const info = stats.calificacionesPorInstructor[instructor];
-      const promedio = parseFloat((info.suma / info.cantidad).toFixed(2));
-      
-      if (promedio > mejorInstructor.promedio || 
-         (promedio === mejorInstructor.promedio && info.cantidad > mejorInstructor.cantidad)) {
-        mejorInstructor = { 
-          nombre: instructor, 
-          promedio: promedio.toFixed(2),
-          cantidad: info.cantidad
-        };
-      }
-    });
+    if (promedio > mejorInstructor.promedio || 
+       (promedio === mejorInstructor.promedio && info.cantidad > mejorInstructor.cantidad)) {
+      mejorInstructor = { 
+        nombre: instructor, 
+        promedio: promedio.toFixed(2),
+        cantidad: info.cantidad
+      };
+    }
+  });
 
-    const top2Norte = Object.entries(stats.instructoresPorSede.Norte || {})
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 2);
-    
-    const top2Sur = Object.entries(stats.instructoresPorSede.Sur || {})
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 2);
+  const tituloTipo = tipo === 'tutores' ? 'Tutorías' : tipo === 'profesores' ? 'Asesorías con Profesores' : 'Registros Totales';
 
-    const grid = document.getElementById('statsGrid');
-    grid.innerHTML = `
+  const grid = document.getElementById('contenidoEstadisticas');
+  grid.innerHTML = `
+    <div class="stats-grid">
       <div class="stat-card">
         <h3>${stats.total}</h3>
-        <p>Total Tutorías</p>
+        <p>Total ${tituloTipo}</p>
       </div>
       <div class="stat-card">
         <h3>${promedioCalificacion}</h3>
@@ -993,37 +1036,20 @@ async function cargarEstadisticas() {
         <h3>${mejorInstructor.nombre}</h3>
         <p>Mejor Calificación (${mejorInstructor.promedio})</p>
       </div>
-    `;
+    </div>
+  `;
 
-    let detalles = '';
+  let detalles = '';
 
-    detalles += '<div class="chart-container"><h3 class="chart-title">Top 2 Tutores - Sede Norte</h3>';
-    if (top2Norte.length > 0) {
-      top2Norte.forEach(([instructor, cantidad]) => {
-        detalles += `<div class="list-item"><span>${instructor}</span><strong>${cantidad} tutorías</strong></div>`;
-      });
-    } else {
-      detalles += '<p style="text-align: center; color: #666;">No hay datos de Sede Norte</p>';
-    }
-    detalles += '</div>';
+  detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de ' + tituloTipo + ' por Sede</h3>';
+  Object.entries(stats.sedesTutorias).forEach(([sede, cantidad]) => {
+    const porcentaje = ((cantidad / stats.total) * 100).toFixed(1);
+    detalles += `<div class="list-item"><span>Sede ${sede}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
+  });
+  detalles += '</div>';
 
-    detalles += '<div class="chart-container"><h3 class="chart-title">Top 2 Tutores - Sede Sur</h3>';
-    if (top2Sur.length > 0) {
-      top2Sur.forEach(([instructor, cantidad]) => {
-        detalles += `<div class="list-item"><span>${instructor}</span><strong>${cantidad} tutorías</strong></div>`;
-      });
-    } else {
-      detalles += '<p style="text-align: center; color: #666;">No hay datos de Sede Sur</p>';
-    }
-    detalles += '</div>';
-
-    detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Tutorías por Sede</h3>';
-    Object.entries(stats.sedesTutorias).forEach(([sede, cantidad]) => {
-      const porcentaje = ((cantidad / stats.total) * 100).toFixed(1);
-      detalles += `<div class="list-item"><span>Sede ${sede}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
-    });
-    detalles += '</div>';
-
+  // Solo mostrar detalle de instructores para tutores
+  if (tipo === 'tutores') {
     detalles += `<div class="chart-container">
       <h3 class="chart-title">Cantidad de Tutorías por Tutor</h3>
       
@@ -1073,11 +1099,28 @@ async function cargarEstadisticas() {
     }
     
     detalles += '</div></div>';
-
-    document.getElementById('detallesStats').innerHTML = detalles;
-  } catch (error) {
-    console.error('Error cargando estadísticas:', error);
   }
+
+  // Para profesores: mostrar por facultad/departamento
+  if (tipo === 'profesores') {
+    detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Asesorías por Facultad/Departamento</h3>';
+    
+    const facultadesOrdenadas = Object.entries(stats.facultadDepartamento)
+      .sort((a, b) => b[1] - a[1]);
+    
+    if (facultadesOrdenadas.length > 0) {
+      facultadesOrdenadas.forEach(([facultad, cantidad]) => {
+        const porcentaje = ((cantidad / stats.total) * 100).toFixed(1);
+        detalles += `<div class="list-item"><span>${facultad}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
+      });
+    } else {
+      detalles += '<p style="text-align: center; color: #666;">No hay datos por facultad</p>';
+    }
+    
+    detalles += '</div>';
+  }
+
+  document.getElementById('detallesStats').innerHTML = detalles;
 }
 
 // ===================================
