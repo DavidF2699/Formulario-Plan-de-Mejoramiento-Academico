@@ -1147,10 +1147,11 @@ function mostrarEstadisticas(tipo, botonClickeado) {
     const facultadesOrdenadas = Object.entries(stats.facultadDepartamento)
       .sort((a, b) => b[1] - a[1]);
     
-    if (facultadesOrdenadas.length > 0) {
+if (facultadesOrdenadas.length > 0) {
       facultadesOrdenadas.forEach(([facultad, cantidad]) => {
+        const nombreCompleto = obtenerNombreFacultad(facultad);
         const porcentaje = ((cantidad / stats.total) * 100).toFixed(1);
-        detalles += `<div class="list-item"><span>${facultad}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
+        detalles += `<div class="list-item"><span>${nombreCompleto}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
       });
     } else {
       detalles += '<p style="text-align: center; color: #666;">No hay datos por facultad</p>';
@@ -1185,7 +1186,8 @@ function mostrarEstadisticas(tipo, botonClickeado) {
       
       facultadesConProfesores.forEach(facultad => {
         const facultadId = facultad.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-        const facultadCorta = facultad.replace('Facultad de ', '').replace('Departamento de ', '');
+        const nombreCompleto = obtenerNombreFacultad(facultad);
+        const facultadCorta = nombreCompleto.replace('Facultad de ', '').replace('Departamento de ', '');
         detalles += `
           <button class="btn btn-secondary btn-sede" onclick="toggleProfesoresFacultad('${facultadId}')">
             ${facultadCorta}
@@ -1200,9 +1202,10 @@ function mostrarEstadisticas(tipo, botonClickeado) {
         const profesores = profesoresPorFacultad[facultad];
         const profesoresOrdenados = Object.entries(profesores).sort((a, b) => b[1] - a[1]);
         
+        const nombreCompletoTitulo = obtenerNombreFacultad(facultad);
         detalles += `
           <div id="profesores${facultadId}" class="horario-info hidden">
-            <h4 class="horario-titulo">${facultad}</h4>`;
+            <h4 class="horario-titulo">${nombreCompletoTitulo}</h4>`;
         
         if (profesoresOrdenados.length > 0) {
           profesoresOrdenados.forEach(([profesor, cantidad]) => {
@@ -1257,13 +1260,16 @@ async function descargarDatos() {
     
     const data = await response.json();
     
-    if (data.length === 0) {
-      alert('No hay registros en el rango de fechas seleccionado');
+    // Filtrar solo tutores
+    const datosTutores = data.filter(item => item.tipo_instructor === 'Tutor');
+    
+    if (datosTutores.length === 0) {
+      alert('No hay registros de tutores en el rango de fechas seleccionado');
       return;
     }
 
-    generarExcelSimplificado(data, `PMA_${desde}_a_${hasta}`);
-    alert(`${data.length} registros descargados exitosamente`);
+    generarExcelSimplificado(datosTutores, `PMA_Tutores_${desde}_a_${hasta}`);
+    alert(`${datosTutores.length} registros de tutores descargados exitosamente`);
   } catch (error) {
     alert('Error al descargar datos: ' + error.message);
   }
@@ -1289,6 +1295,30 @@ async function descargarTodo() {
   }
 }
 
+async function descargarDocentes() {
+  if (!confirm('¿Está seguro de descargar el reporte de docentes?')) {
+    return;
+  }
+
+  try {
+    // Filtrar solo los registros donde tipo_instructor sea "Profesor"
+    const data = await supabaseQuery('formularios', { order: 'fecha.asc' });
+    
+    const datosDocentes = data.filter(item => item.tipo_instructor === 'Profesor');
+    
+    if (datosDocentes.length === 0) {
+      alert('No hay registros de docentes para descargar');
+      return;
+    }
+
+    generarExcelDocentes(datosDocentes, 'PMA_Docentes');
+    alert(`${datosDocentes.length} registros de docentes descargados exitosamente`);
+  } catch (error) {
+    alert('Error al descargar datos: ' + error.message);
+  }
+}
+
+
 function generarExcelSimplificado(datos, nombreArchivo) {
   const datosExcel = datos.map(fila => {
     // Convertir fecha UTC a hora de Colombia
@@ -1309,7 +1339,6 @@ function generarExcelSimplificado(datos, nombreArchivo) {
       'Nombres': fila.nombres,
       'Apellidos': fila.apellidos,
       'Programa': fila.programa,
-      'Tipo Instructor': fila.tipo_instructor,
       'Instructor': fila.instructor,
       'Asignatura': fila.asignatura,
       'Tema': fila.tema
@@ -1343,10 +1372,10 @@ function generarExcelSimplificado(datos, nombreArchivo) {
 
   ws['!cols'] = [
     { wch: 12 }, { wch: 8 }, { wch: 12 }, { wch: 20 }, { wch: 20 },
-    { wch: 35 }, { wch: 15 }, { wch: 25 }, { wch: 30 }, { wch: 30 }
+    { wch: 35 }, { wch: 25 }, { wch: 30 }, { wch: 30 }
   ];
 
-  XLSX.utils.book_append_sheet(wb, ws, "Registros");
+  XLSX.utils.book_append_sheet(wb, ws, "Tutores");
 
   const fechaHoy = new Date().toISOString().split('T')[0];
   XLSX.writeFile(wb, `${nombreArchivo}_${fechaHoy}.xlsx`);
@@ -1427,6 +1456,81 @@ function generarExcelCompleto(datos, nombreArchivo) {
   const fechaHoy = new Date().toISOString().split('T')[0];
   XLSX.writeFile(wb, `${nombreArchivo}_${fechaHoy}.xlsx`);
 }
+
+
+
+function generarExcelDocentes(datos, nombreArchivo) {
+  const datosExcel = datos.map(fila => {
+    // Convertir fecha UTC a hora de Colombia
+    const fechaUTC = new Date(fila.fecha);
+    const fechaColombia = new Date(fechaUTC.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+    
+    const horas = String(fechaColombia.getHours()).padStart(2, '0');
+    const minutos = String(fechaColombia.getMinutes()).padStart(2, '0');
+    const horaFormateada = `${horas}:${minutos}`;
+    
+    // Convertir Date a número de serie de Excel
+    const serialDate = (fechaColombia - new Date(1899, 11, 30)) / (24 * 60 * 60 * 1000);
+    
+    return {
+      'Fecha': serialDate,
+      'Hora': horaFormateada,
+      'Documento': parseInt(fila.documento),
+      'Nombres': fila.nombres,
+      'Apellidos': fila.apellidos,
+      'Programa': fila.programa,
+      'Facultad/Departamento': fila.facultad_departamento || '',
+      'Instructor': fila.instructor,
+      'Asignatura': fila.asignatura,
+      'Tema': fila.tema
+    };
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(datosExcel);
+
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  
+  // Aplicar formato de fecha DD/MM/YYYY a la columna Fecha
+  for (let row = 1; row <= range.e.r; row++) {
+    const fechaCell = XLSX.utils.encode_cell({ r: row, c: 0 }); // Columna Fecha
+    if (ws[fechaCell] && row > 0) {
+      ws[fechaCell].t = 'n'; // Tipo numérico (Excel maneja fechas como números)
+      ws[fechaCell].z = 'dd/mm/yyyy'; // Formato día/mes/año
+    }
+  }
+  
+  // Aplicar formato a documento como número
+  for (let row = 1; row <= range.e.r; row++) {
+    const docCell = XLSX.utils.encode_cell({ r: row, c: 2 }); // Columna Documento
+    if (ws[docCell] && row > 0) {
+      ws[docCell].t = 'n'; // Tipo numérico
+      ws[docCell].z = '0'; // Formato sin decimales
+    }
+  }
+
+  ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
+
+  ws['!cols'] = [
+    { wch: 12 }, // Fecha
+    { wch: 8 },  // Hora
+    { wch: 12 }, // Documento
+    { wch: 20 }, // Nombres
+    { wch: 20 }, // Apellidos
+    { wch: 35 }, // Programa
+    { wch: 20 }, // Facultad/Departamento
+    { wch: 25 }, // Instructor
+    { wch: 30 }, // Asignatura
+    { wch: 30 }  // Tema
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "Docentes");
+
+  const fechaHoy = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(wb, `${nombreArchivo}_${fechaHoy}.xlsx`);
+}
+
+
 
 function cerrarSesionAdmin() {
   volverInicio();

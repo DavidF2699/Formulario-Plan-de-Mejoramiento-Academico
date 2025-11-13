@@ -323,17 +323,17 @@
         </div>
 
         <!-- CORREGIDO: Sin required inicialmente, se agrega dinámicamente con JS -->
-        <div class="form-group hidden" id="grupoFacultadDepartamento">
-          <label>Facultad/Departamento *</label>
-          <select id="facultadDepartamento" onchange="cargarProfesoresPorFacultad()">
-            <option value="">Seleccione una facultad/departamento</option>
-            <option value="Departamento de Ciencias Básicas">Departamento de Ciencias Básicas</option>
-            <option value="Facultad de Ciencias Empresariales">Facultad de Ciencias Empresariales</option>
-            <option value="Facultad de Ciencias Sociales y Humanas">Facultad de Ciencias Sociales y Humanas</option>
-            <option value="Facultad de Educación a Distancia y Virtual">Facultad de Educación a Distancia y Virtual</option>
-            <option value="Facultad de Ingenieria">Facultad de Ingenieria</option>
-          </select>
-        </div>
+<div class="form-group hidden" id="grupoFacultadDepartamento">
+  <label>Facultad/Departamento *</label>
+  <select id="facultadDepartamento" onchange="cargarProfesoresPorFacultad()">
+    <option value="">Seleccione una facultad/departamento</option>
+    <option value="DCB">Departamento de Ciencias Básicas</option>
+    <option value="FCE">Facultad de Ciencias Empresariales</option>
+    <option value="FCSH">Facultad de Ciencias Sociales y Humanas</option>
+    <option value="FEDV">Facultad de Educación a Distancia y Virtual</option>
+    <option value="FI">Facultad de Ingeniería</option>
+  </select>
+</div>
 
         <div class="form-group hidden" id="grupoInstructor">
           <label id="labelInstructor">Instructor *</label>
@@ -449,7 +449,8 @@
             <label>Fecha Hasta</label>
             <input type="date" id="fechaHasta">
           </div>
-          <button class="btn" onclick="descargarDatos()">Descargar por Rango de Fechas</button>
+          <button class="btn" onclick="descargarDatos()">Descargar Tutores</button>
+          <button class="btn btn-secondary" onclick="descargarDocentes()">Descargar Docentes</button>
           <button class="btn btn-secondary" onclick="descargarTodo()">Descargar Todos los Registros</button>
         </div>
       </div>
