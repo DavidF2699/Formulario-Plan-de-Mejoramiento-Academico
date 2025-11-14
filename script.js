@@ -745,6 +745,9 @@ function cargarMaterias() {
 // ===================================
 // CARGAR TEMAS
 // ===================================
+// ===================================
+// CARGAR TEMAS
+// ===================================
 function cargarTemas() {
   const materia = document.getElementById('asignatura').value;
   if (!materia) return;
@@ -790,44 +793,60 @@ function cargarTemas() {
     containerAsignatura.classList.add('hidden');
     inputAsignatura.required = false;
     inputAsignatura.value = '';
-    
-    // Restaurar el select de tema
-    const selectTema = document.getElementById('tema');
-    selectTema.style.display = '';
-    selectTema.required = true;
-    
-    // Ocultar el campo de tema personalizado
-    const containerTema = document.getElementById('otroTemaContainer');
-    const inputTema = document.getElementById('otroTema');
-    containerTema.classList.add('hidden');
-    inputTema.required = false;
-    inputTema.value = '';
-    
-    // Restaurar el label original
-    const labelTema = document.querySelector('#grupoTema label');
-    labelTema.textContent = 'Tema de la tutoría *';
   }
 
   document.getElementById('grupoTema').classList.remove('hidden');
 
+  // Filtrar temas de la materia seleccionada
   const temasFiltrados = datosCache.temas.filter(tem => tem.materia === materia);
-  const temasOrdenados = temasFiltrados.sort((a, b) => a.tema.localeCompare(b.tema));
-
-  const selectTema = document.getElementById('tema');
-  selectTema.innerHTML = '<option value="">Seleccione un tema</option>';
   
-  temasOrdenados.forEach(tem => {
-    const option = document.createElement('option');
-    option.value = tem.tema;
-    option.textContent = tem.tema;
-    selectTema.appendChild(option);
-  });
+  const selectTema = document.getElementById('tema');
+  const containerTema = document.getElementById('otroTemaContainer');
+  const inputTema = document.getElementById('otroTema');
+  const labelTema = document.querySelector('#grupoTema label');
 
-  const optionOtro = document.createElement('option');
-  optionOtro.value = 'Otro';
-  optionOtro.textContent = 'Otro: ¿Cuál?';
-  optionOtro.style.fontWeight = 'bold';
-  selectTema.appendChild(optionOtro);
+  // Si NO hay temas en la base de datos, mostrar solo campo de texto
+  if (temasFiltrados.length === 0) {
+    // Ocultar el select
+    selectTema.style.display = 'none';
+    selectTema.required = false;
+    
+    // Mostrar campo de texto
+    containerTema.classList.remove('hidden');
+    inputTema.required = true;
+    inputTema.value = '';
+    
+    // Cambiar el label
+    labelTema.textContent = 'Tema *';
+  } else {
+    // Si HAY temas, mostrar el select normalmente
+    const temasOrdenados = temasFiltrados.sort((a, b) => a.tema.localeCompare(b.tema));
+    
+    selectTema.style.display = '';
+    selectTema.required = true;
+    selectTema.innerHTML = '<option value="">Seleccione un tema</option>';
+    
+    temasOrdenados.forEach(tem => {
+      const option = document.createElement('option');
+      option.value = tem.tema;
+      option.textContent = tem.tema;
+      selectTema.appendChild(option);
+    });
+
+    const optionOtro = document.createElement('option');
+    optionOtro.value = 'Otro';
+    optionOtro.textContent = 'Otro: ¿Cuál?';
+    optionOtro.style.fontWeight = 'bold';
+    selectTema.appendChild(optionOtro);
+    
+    // Ocultar campo de texto
+    containerTema.classList.add('hidden');
+    inputTema.required = false;
+    inputTema.value = '';
+    
+    // Restaurar label original
+    labelTema.textContent = 'Tema de la tutoría *';
+  }
 
   document.getElementById('grupoMotivo').classList.remove('hidden');
   document.getElementById('grupoCalificacion').classList.remove('hidden');
