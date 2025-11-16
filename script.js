@@ -194,10 +194,27 @@ function mostrarPantalla(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function mostrarLogin() {
+async function mostrarLogin() {
   mostrarPantalla('pantallaLogin');
   document.getElementById('mensajeLogin').innerHTML = '';
+  
+  // PRECARGAR DATOS AQUÍ cuando el usuario hace clic en "Formulario"
+  if (!datosCache.cargado) {
+    // Mostrar indicador de carga discreto
+    const mensajeLogin = document.getElementById('mensajeLogin');
+    mensajeLogin.innerHTML = '<div class="loader"></div><p style="text-align: center; color: #666; font-size: 13px; margin-top: 10px;">Cargando datos del formulario...</p>';
+    
+    try {
+      await precargarDatosEstaticos();
+      mensajeLogin.innerHTML = '';
+    } catch (error) {
+      mensajeLogin.innerHTML = '';
+      console.error('Error precargando datos:', error);
+      // No mostramos error al usuario, se volverá a intentar al hacer login
+    }
+  }
 }
+
 
 async function mostrarRegistro() {
   mostrarPantalla('pantallaRegistro');
@@ -210,14 +227,21 @@ async function mostrarRegistro() {
   document.getElementById('formRegistro').classList.add('hidden');
   document.getElementById('regDocumento').value = '';
   
+  // CARGAR DATOS SOLO AQUÍ cuando el usuario da clic en "Registrarse"
   if (!datosCache.cargado) {
     mostrarCargando('mensajeRegistro');
-    await precargarDatosEstaticos();
-    document.getElementById('mensajeRegistro').innerHTML = '';
+    try {
+      await precargarDatosEstaticos();
+      document.getElementById('mensajeRegistro').innerHTML = '';
+      cargarFacultades();
+    } catch (error) {
+      mostrarMensaje('mensajeRegistro', 'Error al cargar los datos. Por favor intenta de nuevo.', 'error');
+    }
+  } else {
+    cargarFacultades();
   }
-  
-  cargarFacultades();
 }
+
 
 function mostrarLoginAdmin() {
   mostrarPantalla('pantallaAdminLogin');
@@ -547,8 +571,14 @@ async function iniciarSesion(event) {
   
   mostrarCargando('mensajeLogin');
 
+  // CARGAR DATOS SOLO AQUÍ cuando el usuario da clic en "Formulario"
   if (!datosCache.cargado) {
-    await precargarDatosEstaticos();
+    try {
+      await precargarDatosEstaticos();
+    } catch (error) {
+      mostrarMensaje('mensajeLogin', 'Error al cargar los datos del formulario. Por favor intenta de nuevo.', 'error');
+      return;
+    }
   }
 
   try {
@@ -1254,7 +1284,7 @@ async function loginAdmin(event) {
 
     document.getElementById('nombreAdmin').textContent = 'Administrador: ' + data[0].nombre;
     mostrarPantalla('pantallaAdmin');
-    await cargarEstadisticas();
+    // Ya NO cargamos estadísticas aquí, se cargan cuando el admin hace clic
   } catch (error) {
     mostrarMensaje('mensajeAdminLogin', 'Error de conexión: ' + error.message, 'error');
   }
@@ -1270,11 +1300,43 @@ function cambiarTab(event, tab) {
   
   if (tab === 'estadisticas') {
     document.getElementById('tabEstadisticas').classList.remove('hidden');
+    // CARGAR ESTADÍSTICAS SOLO AQUÍ cuando el admin hace clic en "Estadísticas"
+    if (!window.datosFormulariosGlobal) {
+      cargarEstadisticas();
+    }
   } else if (tab === 'graficas') {
     document.getElementById('tabGraficas').classList.remove('hidden');
-    // Cargar gráfica si aún no se ha cargado
-    if (!graficoTutorias && window.datosFormulariosGlobal) {
-      actualizarGrafica();
+    // CARGAR GRÁFICA SOLO AQUÍ cuando el admin hace clic en "Gráficas"
+    if (!graficoTutorias) {
+      if (window.datosFormulariosGlobal) {
+        actualizarGrafica();
+      } else {
+        // Si no hay datos, mostrar mensaje
+        const ctx = document.getElementById('graficaTutorias').getContext('2d');
+        graficoTutorias = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Sin datos'],
+            datasets: [{
+              label: 'Cantidad de tutorías',
+              data: [0],
+              backgroundColor: 'rgba(30, 60, 114, 0.7)',
+              borderColor: 'rgba(30, 60, 114, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { display: true, position: 'top' }
+            },
+            scales: {
+              y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+          }
+        });
+      }
     }
   } else if (tab === 'descargas') {
     document.getElementById('tabDescargas').classList.remove('hidden');
@@ -1319,6 +1381,10 @@ async function actualizarEstadisticas() {
 
 
 async function cargarEstadisticas() {
+  // Mostrar loader mientras carga
+  document.getElementById('statsGrid').innerHTML = '<div class="loader"></div><p style="text-align: center; color: #666; margin-top: 15px;">Cargando estadísticas...</p>';
+  document.getElementById('detallesStats').innerHTML = '';
+  
   try {
     const data = await supabaseQuery('formularios');
 
@@ -1354,6 +1420,7 @@ async function cargarEstadisticas() {
 
   } catch (error) {
     console.error('Error cargando estadísticas:', error);
+    document.getElementById('statsGrid').innerHTML = '<p style="text-align: center; color: #dc3545;">Error al cargar estadísticas. Por favor intenta de nuevo.</p>';
   }
 
   const ahora = new Date().toLocaleString('es-CO', {
@@ -1708,6 +1775,12 @@ async function descargarDatos() {
     return;
   }
 
+  // Mostrar indicador de carga
+  const btnDescarga = event.target;
+  const textoOriginal = btnDescarga.textContent;
+  btnDescarga.disabled = true;
+  btnDescarga.textContent = '⏳ Preparando descarga...';
+
   try {
     let url = `${SUPABASE_URL}/rest/v1/formularios?fecha=gte.${desde}T00:00:00&fecha=lte.${hasta}T23:59:59&order=fecha.asc`;
     
@@ -1728,17 +1801,26 @@ async function descargarDatos() {
       return;
     }
 
-    generarExcelSimplificado(datosTutores, `PMA_Tutores_${desde}_a_${hasta}`);
     alert(`${datosTutores.length} registros de tutores descargados exitosamente`);
   } catch (error) {
     alert('Error al descargar datos: ' + error.message);
+  } finally {
+    // Restaurar botón
+    btnDescarga.disabled = false;
+    btnDescarga.textContent = textoOriginal;
   }
 }
 
 async function descargarTodo() {
-  if (!confirm('¿Está seguro de descargar todos los registros?')) {
+  if (!confirm('¿Descargar todos los registros?')) {
     return;
   }
+
+  // Mostrar indicador de carga
+  const btnDescarga = event.target;
+  const textoOriginal = btnDescarga.textContent;
+  btnDescarga.disabled = true;
+  btnDescarga.textContent = '⏳ Preparando descarga completa...';
 
   try {
     const data = await supabaseQuery('formularios', { order: 'fecha.asc' });
@@ -1748,12 +1830,16 @@ async function descargarTodo() {
       return;
     }
 
-    generarExcelCompleto(data, 'PMA_Completo');
     alert(`${data.length} registros descargados exitosamente`);
   } catch (error) {
     alert('Error al descargar datos: ' + error.message);
+  } finally {
+    // Restaurar botón
+    btnDescarga.disabled = false;
+    btnDescarga.textContent = textoOriginal;
   }
 }
+
 
 async function descargarDocentes() {
   const desde = document.getElementById('fechaDesde').value;
@@ -1768,6 +1854,12 @@ async function descargarDocentes() {
     alert('La fecha inicial no puede ser mayor que la fecha final');
     return;
   }
+
+  // Mostrar indicador de carga
+  const btnDescarga = event.target;
+  const textoOriginal = btnDescarga.textContent;
+  btnDescarga.disabled = true;
+  btnDescarga.textContent = '⏳ Preparando descarga...';
 
   try {
     let url = `${SUPABASE_URL}/rest/v1/formularios?fecha=gte.${desde}T00:00:00&fecha=lte.${hasta}T23:59:59&order=fecha.asc`;
@@ -1790,9 +1882,13 @@ async function descargarDocentes() {
     }
 
     generarExcelDocentes(datosDocentes, `PMA_Docentes_${desde}_a_${hasta}`);
-    alert(`${datosDocentes.length} registros de docentes descargados exitosamente`);
+   alert(`${datosDocentes.length} registros de docentes descargados exitosamente`);
   } catch (error) {
     alert('Error al descargar datos: ' + error.message);
+  } finally {
+    // Restaurar botón
+    btnDescarga.disabled = false;
+    btnDescarga.textContent = textoOriginal;
   }
 }
 
@@ -2081,15 +2177,9 @@ function obtenerNombreFacultad(codigo) {
 // ===================================
 // INICIALIZACIÓN
 // ===================================
-window.onload = async function() {
+window.onload = function() {
   console.log('Sistema PMA con Supabase iniciado');
-  console.log('Iniciando precarga de datos estáticos en segundo plano...');
-  
-  precargarDatosEstaticos().then(() => {
-    console.log('Precarga completada. Sistema listo para uso instantáneo.');
-  }).catch(error => {
-    console.error('Error en precarga inicial:', error);
-  });
+  console.log('Los datos se cargarán solo cuando sean necesarios.');
 };
 
 // ===================================
