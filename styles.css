@@ -577,6 +577,11 @@ textarea {
   margin: 20px 0;
 }
 
+#graficaTutorias {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+}
 .chart-title {
   color: #1e3c72;
   font-size: 14px;

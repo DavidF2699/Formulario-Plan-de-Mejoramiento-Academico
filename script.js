@@ -26,6 +26,7 @@ const SUPABASE_KEY = k1 + k2 + k3 + k4 + k5 + k6 + k7 + k8 + k9 + k10;
 let datosEstudiante = null;
 let instructorActual = null;
 let formularioEnviandose = false;
+let graficoTutorias = null;
 
 
 // ===================================
@@ -260,7 +261,7 @@ function volverInicio() {
   document.getElementById('horarioSur').classList.add('hidden');
   document.getElementById('horarioVirtual').classList.add('hidden');
 
-  
+
 // REACTIVAR BOTONES
   const btnEnviar = document.getElementById('btnEnviar');
   if (btnEnviar) {
@@ -1264,15 +1265,21 @@ function cambiarTab(event, tab) {
   event.target.classList.add('active');
   
   document.getElementById('tabEstadisticas').classList.add('hidden');
+  document.getElementById('tabGraficas').classList.add('hidden');
   document.getElementById('tabDescargas').classList.add('hidden');
   
   if (tab === 'estadisticas') {
     document.getElementById('tabEstadisticas').classList.remove('hidden');
+  } else if (tab === 'graficas') {
+    document.getElementById('tabGraficas').classList.remove('hidden');
+    // Cargar gráfica si aún no se ha cargado
+    if (!graficoTutorias && window.datosFormulariosGlobal) {
+      actualizarGrafica();
+    }
   } else if (tab === 'descargas') {
     document.getElementById('tabDescargas').classList.remove('hidden');
   }
 }
-
 
 // ===================================
 // ACTUALIZAR ESTADÍSTICAS
@@ -2099,4 +2106,120 @@ function togglePassword() {
     input.type = 'password';
     button.textContent = '👁️';
   }
+}
+
+
+// ===================================
+// GRÁFICAS
+// ===================================
+function actualizarGrafica() {
+  const periodo = document.getElementById('filtroGraficaPeriodo').value;
+  const tipoInstructor = document.getElementById('filtroGraficaTipo').value;
+  
+  const data = window.datosFormulariosGlobal;
+  if (!data || data.length === 0) return;
+  
+  // Filtrar por tipo de instructor si no es "todos"
+  let datosFiltrados = data;
+  if (tipoInstructor !== 'todos') {
+    datosFiltrados = data.filter(item => item.tipo_instructor === tipoInstructor);
+  }
+  
+  let labels = [];
+  let valores = [];
+  
+  if (periodo === 'semanal') {
+    // Últimos 7 días
+    const hoy = new Date();
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date(hoy);
+      fecha.setDate(fecha.getDate() - i);
+      fecha.setHours(0, 0, 0, 0);
+      
+      const nombreDia = diasSemana[fecha.getDay()];
+      const dia = String(fecha.getDate()).padStart(2, '0');
+      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      
+      labels.push(`${nombreDia} ${dia}/${mes}`);
+      
+      // Contar registros de ese día
+      const fechaSiguiente = new Date(fecha);
+      fechaSiguiente.setDate(fechaSiguiente.getDate() + 1);
+      
+      const cantidad = datosFiltrados.filter(item => {
+        const fechaItem = new Date(item.fecha);
+        return fechaItem >= fecha && fechaItem < fechaSiguiente;
+      }).length;
+      
+      valores.push(cantidad);
+    }
+  } else if (periodo === 'mensual') {
+    // Mes actual - días del 1 al último día del mes
+    const hoy = new Date();
+    const año = hoy.getFullYear();
+    const mes = hoy.getMonth();
+    const ultimoDia = new Date(año, mes + 1, 0).getDate();
+    
+    for (let dia = 1; dia <= ultimoDia; dia++) {
+      labels.push(String(dia).padStart(2, '0'));
+      
+      const fechaDia = new Date(año, mes, dia, 0, 0, 0, 0);
+      const fechaSiguiente = new Date(año, mes, dia + 1, 0, 0, 0, 0);
+      
+      const cantidad = datosFiltrados.filter(item => {
+        const fechaItem = new Date(item.fecha);
+        return fechaItem >= fechaDia && fechaItem < fechaSiguiente;
+      }).length;
+      
+      valores.push(cantidad);
+    }
+  }
+  
+  // Destruir gráfico anterior si existe
+  if (graficoTutorias) {
+    graficoTutorias.destroy();
+  }
+  
+  // Crear nuevo gráfico
+  const ctx = document.getElementById('graficaTutorias').getContext('2d');
+  graficoTutorias = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Cantidad de tutorías',
+        data: valores,
+        backgroundColor: 'rgba(30, 60, 114, 0.7)',
+        borderColor: 'rgba(30, 60, 114, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.parsed.y + ' tutoría' + (context.parsed.y !== 1 ? 's' : '');
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
 }
