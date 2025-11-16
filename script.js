@@ -1290,7 +1290,7 @@ async function loginAdmin(event) {
   }
 }
 
-function cambiarTab(event, tab) {
+async function cambiarTab(event, tab) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   event.target.classList.add('active');
   
@@ -1302,41 +1302,31 @@ function cambiarTab(event, tab) {
     document.getElementById('tabEstadisticas').classList.remove('hidden');
     // CARGAR ESTADÍSTICAS SOLO AQUÍ cuando el admin hace clic en "Estadísticas"
     if (!window.datosFormulariosGlobal) {
-      cargarEstadisticas();
+      await cargarEstadisticas();
     }
   } else if (tab === 'graficas') {
     document.getElementById('tabGraficas').classList.remove('hidden');
-    // CARGAR GRÁFICA SOLO AQUÍ cuando el admin hace clic en "Gráficas"
-    if (!graficoTutorias) {
-      if (window.datosFormulariosGlobal) {
-        actualizarGrafica();
-      } else {
-        // Si no hay datos, mostrar mensaje
-        const ctx = document.getElementById('graficaTutorias').getContext('2d');
-        graficoTutorias = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['Sin datos'],
-            datasets: [{
-              label: 'Cantidad de tutorías',
-              data: [0],
-              backgroundColor: 'rgba(30, 60, 114, 0.7)',
-              borderColor: 'rgba(30, 60, 114, 1)',
-              borderWidth: 1
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: { display: true, position: 'top' }
-            },
-            scales: {
-              y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            }
-          }
-        });
+    
+    // CARGAR DATOS si no existen aún
+    if (!window.datosFormulariosGlobal) {
+      // Mostrar loader mientras carga
+      const container = document.querySelector('#tabGraficas .chart-container');
+      const contenidoOriginal = container.innerHTML;
+      container.innerHTML = '<div class="loader"></div><p style="text-align: center; color: #666; margin-top: 15px;">Cargando datos para gráficas...</p>';
+      
+      try {
+        const data = await supabaseQuery('formularios');
+        window.datosFormulariosGlobal = data;
+        container.innerHTML = contenidoOriginal;
+      } catch (error) {
+        container.innerHTML = '<p style="text-align: center; color: #dc3545;">Error al cargar datos. Por favor intenta de nuevo.</p>';
+        return;
       }
+    }
+    
+    // Ahora sí crear/actualizar la gráfica
+    if (!graficoTutorias) {
+      actualizarGrafica();
     }
   } else if (tab === 'descargas') {
     document.getElementById('tabDescargas').classList.remove('hidden');
