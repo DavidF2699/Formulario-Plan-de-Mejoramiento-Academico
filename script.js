@@ -1791,6 +1791,7 @@ async function descargarDatos() {
       return;
     }
 
+    generarExcelSimplificado(datosTutores, `PMA_Tutores_${desde}_a_${hasta}`);
     alert(`${datosTutores.length} registros de tutores descargados exitosamente`);
   } catch (error) {
     alert('Error al descargar datos: ' + error.message);
@@ -1802,7 +1803,7 @@ async function descargarDatos() {
 }
 
 async function descargarTodo() {
-  if (!confirm('¿Descargar todos los registros?')) {
+  if (!confirm('¿descargar todos los registros?')) {
     return;
   }
 
@@ -1820,6 +1821,7 @@ async function descargarTodo() {
       return;
     }
 
+    generarExcelCompleto(data, 'PMA_Completo');
     alert(`${data.length} registros descargados exitosamente`);
   } catch (error) {
     alert('Error al descargar datos: ' + error.message);
