@@ -1578,32 +1578,35 @@ function mostrarEstadisticas(tipo, botonClickeado) {
     });
     detalles += '</div>';
 
-    // Contar tutorías totales por instructor
+    // Contar tutorías totales por instructor (sin importar dónde las dio)
     const tutoriasPorInstructor = {};
     datosFiltrados.forEach(item => {
       const instructor = item.instructor;
       tutoriasPorInstructor[instructor] = (tutoriasPorInstructor[instructor] || 0) + 1;
     });
 
-    // Agrupar tutores por sede según tabla de origen
+    // Agrupar tutores por SEDE DE ORIGEN (tabla donde están registrados)
     // Si un tutor está en ambas tablas, aparece en ambas sedes con el mismo total
-    const tutoresPorSedeReal = { Norte: {}, Sur: {} };
+    const tutoresPorSedeOrigen = { Norte: {}, Sur: {} };
     
-    Object.keys(tutoriasPorInstructor).forEach(instructor => {
-      const cantidadTotal = tutoriasPorInstructor[instructor];
-      
-      // Verificar en qué tablas está el tutor
-      const esTutorNorte = datosCache.tutoresNorte.some(t => t.nombre === instructor);
-      const esTutorSur = datosCache.tutoresSur.some(t => t.nombre === instructor);
-      
-      // Agregar a las sedes correspondientes con el TOTAL de tutorías
-      if (esTutorNorte) {
-        tutoresPorSedeReal.Norte[instructor] = cantidadTotal;
-      }
-      if (esTutorSur) {
-        tutoresPorSedeReal.Sur[instructor] = cantidadTotal;
-      }
-    });
+    // Verificar si los datos están cargados
+    if (datosCache.cargado && datosCache.tutoresNorte && datosCache.tutoresSur) {
+      Object.keys(tutoriasPorInstructor).forEach(instructor => {
+        const cantidadTotal = tutoriasPorInstructor[instructor];
+        
+        // Verificar en qué tabla de ORIGEN está el tutor
+        const esTutorNorte = datosCache.tutoresNorte.some(t => t.nombre === instructor);
+        const esTutorSur = datosCache.tutoresSur.some(t => t.nombre === instructor);
+        
+        // Agregar a las sedes de origen con el TOTAL de tutorías
+        if (esTutorNorte) {
+          tutoresPorSedeOrigen.Norte[instructor] = cantidadTotal;
+        }
+        if (esTutorSur) {
+          tutoresPorSedeOrigen.Sur[instructor] = cantidadTotal;
+        }
+      });
+    }
 
     detalles += `<div class="chart-container">
       <h3 class="chart-title">Cantidad de Tutorías por Tutor</h3>
@@ -1618,39 +1621,41 @@ function mostrarEstadisticas(tipo, botonClickeado) {
       </div>
 
       <div id="instructoresNorteAdmin" class="horario-info hidden">
-        <h4 class="horario-titulo">Sede Norte</h4>`;
+        <h4 class="horario-titulo">Tutores de Sede Norte</h4>`;
     
-    const instructoresNorte = Object.entries(tutoresPorSedeReal.Norte)
-      .sort((a, b) => b[1] - a[1]);
+    const instructoresNorte = Object.entries(tutoresPorSedeOrigen.Norte)
+      .sort((a, b) => b[1] - a[1]); // Ordenar de mayor a menor cantidad
+    
     if (instructoresNorte.length > 0) {
       instructoresNorte.forEach(([instructor, cantidad]) => {
         const promedio = promediosPorInstructor[instructor] || 'N/A';
         detalles += `<div class="list-item">
           <span>${instructor}</span>
-          <strong>${cantidad} tutorías<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
+          <strong>${cantidad} tutoría${cantidad !== 1 ? 's' : ''}<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
         </div>`;
       });
     } else {
-      detalles += '<p style="text-align: center; color: #666;">No hay tutores en Sede Norte</p>';
+      detalles += '<p style="text-align: center; color: #666;">No hay tutores registrados en Sede Norte</p>';
     }
     
     detalles += `</div>
 
       <div id="instructoresSurAdmin" class="horario-info hidden">
-        <h4 class="horario-titulo">Sede Sur</h4>`;
+        <h4 class="horario-titulo">Tutores de Sede Sur</h4>`;
     
-    const instructoresSur = Object.entries(tutoresPorSedeReal.Sur)
-      .sort((a, b) => b[1] - a[1]);
+    const instructoresSur = Object.entries(tutoresPorSedeOrigen.Sur)
+      .sort((a, b) => b[1] - a[1]); // Ordenar de mayor a menor cantidad
+    
     if (instructoresSur.length > 0) {
       instructoresSur.forEach(([instructor, cantidad]) => {
         const promedio = promediosPorInstructor[instructor] || 'N/A';
         detalles += `<div class="list-item">
           <span>${instructor}</span>
-          <strong>${cantidad} tutorías<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
+          <strong>${cantidad} tutoría${cantidad !== 1 ? 's' : ''}<br><span style="font-size: 12px; font-weight: normal;">Calificación: ${promedio}</span></strong>
         </div>`;
       });
     } else {
-      detalles += '<p style="text-align: center; color: #666;">No hay tutores en Sede Sur</p>';
+      detalles += '<p style="text-align: center; color: #666;">No hay tutores registrados en Sede Sur</p>';
     }
     
     detalles += '</div></div>';
