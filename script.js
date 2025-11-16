@@ -2125,56 +2125,136 @@ function actualizarGrafica() {
     datosFiltrados = data.filter(item => item.tipo_instructor === tipoInstructor);
   }
   
+  if (datosFiltrados.length === 0) {
+    // Si no hay datos filtrados, mostrar gráfico vacío
+    if (graficoTutorias) {
+      graficoTutorias.destroy();
+    }
+    const ctx = document.getElementById('graficaTutorias').getContext('2d');
+    graficoTutorias = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Sin datos'],
+        datasets: [{
+          label: 'Cantidad de tutorías',
+          data: [0],
+          backgroundColor: 'rgba(30, 60, 114, 0.7)',
+          borderColor: 'rgba(30, 60, 114, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+    return;
+  }
+  
   let labels = [];
   let valores = [];
   
   if (periodo === 'semanal') {
-    // Últimos 7 días
-    const hoy = new Date();
-    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    // Agrupar por semanas (Domingo a Sábado)
     
-    for (let i = 6; i >= 0; i--) {
-      const fecha = new Date(hoy);
-      fecha.setDate(fecha.getDate() - i);
-      fecha.setHours(0, 0, 0, 0);
+    // Encontrar la fecha más antigua y más reciente
+    const fechas = datosFiltrados.map(item => new Date(item.fecha));
+    const fechaMin = new Date(Math.min(...fechas));
+    const fechaMax = new Date(Math.max(...fechas));
+    
+    // Función para obtener el domingo de una fecha
+    function obtenerDomingo(fecha) {
+      const dia = fecha.getDay();
+      const diff = fecha.getDate() - dia; // Restar días para llegar al domingo
+      const domingo = new Date(fecha);
+      domingo.setDate(diff);
+      domingo.setHours(0, 0, 0, 0);
+      return domingo;
+    }
+    
+    // Obtener el domingo de la primera semana
+    let domingoActual = obtenerDomingo(fechaMin);
+    
+    // Iterar por cada semana hasta cubrir todas las fechas
+    const semanas = {};
+    
+    while (domingoActual <= fechaMax) {
+      const sabado = new Date(domingoActual);
+      sabado.setDate(sabado.getDate() + 6);
+      sabado.setHours(23, 59, 59, 999);
       
-      const nombreDia = diasSemana[fecha.getDay()];
-      const dia = String(fecha.getDate()).padStart(2, '0');
-      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      // Formatear las fechas para el label
+      const diaD = String(domingoActual.getDate()).padStart(2, '0');
+      const mesD = String(domingoActual.getMonth() + 1).padStart(2, '0');
+      const añoD = domingoActual.getFullYear();
       
-      labels.push(`${nombreDia} ${dia}/${mes}`);
+      const diaS = String(sabado.getDate()).padStart(2, '0');
+      const mesS = String(sabado.getMonth() + 1).padStart(2, '0');
+      const añoS = sabado.getFullYear();
       
-      // Contar registros de ese día
-      const fechaSiguiente = new Date(fecha);
-      fechaSiguiente.setDate(fechaSiguiente.getDate() + 1);
+      const label = `${diaD}/${mesD}/${añoD} - ${diaS}/${mesS}/${añoS}`;
       
+      // Contar registros en esta semana
       const cantidad = datosFiltrados.filter(item => {
         const fechaItem = new Date(item.fecha);
-        return fechaItem >= fecha && fechaItem < fechaSiguiente;
+        return fechaItem >= domingoActual && fechaItem <= sabado;
       }).length;
       
-      valores.push(cantidad);
+      semanas[label] = cantidad;
+      
+      // Avanzar a la siguiente semana (siguiente domingo)
+      domingoActual = new Date(domingoActual);
+      domingoActual.setDate(domingoActual.getDate() + 7);
     }
+    
+    labels = Object.keys(semanas);
+    valores = Object.values(semanas);
+    
   } else if (periodo === 'mensual') {
-    // Mes actual - días del 1 al último día del mes
-    const hoy = new Date();
-    const año = hoy.getFullYear();
-    const mes = hoy.getMonth();
-    const ultimoDia = new Date(año, mes + 1, 0).getDate();
+    // Agrupar por meses completos
     
-    for (let dia = 1; dia <= ultimoDia; dia++) {
-      labels.push(String(dia).padStart(2, '0'));
+    const meses = {};
+    const nombresMeses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    
+    datosFiltrados.forEach(item => {
+      const fecha = new Date(item.fecha);
+      const mes = fecha.getMonth();
+      const año = fecha.getFullYear();
+      const claveMes = `${año}-${String(mes + 1).padStart(2, '0')}`; // Para ordenar
+      const labelMes = `${nombresMeses[mes]} ${año}`;
       
-      const fechaDia = new Date(año, mes, dia, 0, 0, 0, 0);
-      const fechaSiguiente = new Date(año, mes, dia + 1, 0, 0, 0, 0);
+      if (!meses[claveMes]) {
+        meses[claveMes] = {
+          label: labelMes,
+          cantidad: 0
+        };
+      }
       
-      const cantidad = datosFiltrados.filter(item => {
-        const fechaItem = new Date(item.fecha);
-        return fechaItem >= fechaDia && fechaItem < fechaSiguiente;
-      }).length;
-      
-      valores.push(cantidad);
-    }
+      meses[claveMes].cantidad++;
+    });
+    
+    // Ordenar por fecha (año-mes)
+    const clavesMesesOrdenadas = Object.keys(meses).sort();
+    
+    labels = clavesMesesOrdenadas.map(clave => meses[clave].label);
+    valores = clavesMesesOrdenadas.map(clave => meses[clave].cantidad);
   }
   
   // Destruir gráfico anterior si existe
@@ -2217,6 +2297,12 @@ function actualizarGrafica() {
           beginAtZero: true,
           ticks: {
             stepSize: 1
+          }
+        },
+        x: {
+          ticks: {
+            maxRotation: 45,
+            minRotation: 45
           }
         }
       }
