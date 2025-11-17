@@ -1260,7 +1260,7 @@ else {
     tema: tema,
     motivo_consulta: document.getElementById('motivoConsulta').value,
     calificacion: parseInt(calificacionRadio.value),
-    sugerencias: document.getElementById('sugerencias').value || 'Ninguna',
+    sugerencias: document.getElementById('sugerencias').value.toUpperCase() || 'Ninguna',
     fecha: fechaISO
   };
 
@@ -1652,7 +1652,7 @@ function mostrarEstadisticas(tipo, botonClickeado) {
     detalles += '<div class="chart-container"><h3 class="chart-title">Cantidad de Tutorías por Sede</h3>';
     Object.entries(stats.sedesTutorias).forEach(([sede, cantidad]) => {
       const porcentaje = ((cantidad / stats.total) * 100).toFixed(1);
-      detalles += `<div class="list-item"><span>Sede ${sede}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
+      detalles += `<div class="list-item"><span>${sede}</span><strong>${cantidad} (${porcentaje}%)</strong></div>`;
     });
     detalles += '</div>';
 
