@@ -28,6 +28,52 @@ let instructorActual = null;
 let formularioEnviandose = false;
 let graficoTutorias = null;
 
+// ===================================
+// MANEJO DEL BOTÓN DE RETROCESO
+// ===================================
+let pantallaActual = 'pantallaInicio';
+let historialNavegacion = ['pantallaInicio'];
+
+// Actualizar estado de navegación al cambiar de pantalla
+function actualizarHistorial(nuevaPantalla) {
+  pantallaActual = nuevaPantalla;
+  historialNavegacion.push(nuevaPantalla);
+  history.pushState({ pantalla: nuevaPantalla }, '', '');
+}
+
+// Manejar el evento popstate (botón de retroceso)
+window.addEventListener('popstate', function(event) {
+  event.preventDefault();
+  
+  // Determinar acción según pantalla actual
+  if (pantallaActual === 'pantallaLogin') {
+    // Desde "Llenar Formulario" → Volver a "Bienvenido"
+    volverInicio();
+  } 
+  else if (pantallaActual === 'pantallaFormulario') {
+    // Desde "Registro de Asistencia" → Mostrar modal de confirmación
+    confirmarCancelacion();
+  } 
+  else if (pantallaActual === 'pantallaRegistro') {
+    // Desde "Registro de Estudiante" → Mostrar modal de confirmación
+    confirmarCancelacion();
+  } 
+  else if (pantallaActual === 'pantallaAdminLogin') {
+    // Desde "Acceso de Administrador" → Volver a "Bienvenido"
+    volverInicio();
+  } 
+  else if (pantallaActual === 'pantallaAdmin') {
+    // Desde "Panel de Administración" → Volver a "Acceso de Administrador"
+    mostrarLoginAdmin();
+  }
+  else {
+    // En cualquier otra pantalla (inicio), no hacer nada
+    return;
+  }
+  
+  // Mantener el estado actual para evitar que se salga
+  history.pushState({ pantalla: pantallaActual }, '', '');
+});
 
 // ===================================
 // FUNCIÓN DE REINTENTOS AUTOMÁTICOS
@@ -223,6 +269,9 @@ function mostrarPantalla(id) {
   document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Actualizar historial de navegación
+  actualizarHistorial(id);
 }
 
 async function mostrarLogin() {
@@ -303,6 +352,10 @@ function toggleHorario(sede) {
 }
 
 function volverInicio() {
+  // Limpiar el historial
+  pantallaActual = 'pantallaInicio';
+  historialNavegacion = ['pantallaInicio'];
+  
   mostrarPantalla('pantallaInicio');
   limpiarFormularios();
   formularioEnviandose = false;
@@ -2248,6 +2301,10 @@ function obtenerNombreFacultad(codigo) {
 window.onload = function() {
   console.log('Sistema PMA con Supabase iniciado');
   console.log('Los datos se cargarán solo cuando sean necesarios.');
+  
+  // Inicializar el estado de navegación
+  history.replaceState({ pantalla: 'pantallaInicio' }, '', '');
+  pantallaActual = 'pantallaInicio';
 };
 
 // ===================================
