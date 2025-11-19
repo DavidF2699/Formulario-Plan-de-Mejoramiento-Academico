@@ -318,9 +318,6 @@ function mostrarLoginAdmin() {
   mostrarPantalla('pantallaAdminLogin');
   document.getElementById('mensajeAdminLogin').innerHTML = '';
   
-  // AGREGAR ESTA LÍNEA:
-  pantallaActual = 'pantallaAdminLogin';
-}
 
 function toggleHorarios() {
   const contenedor = document.getElementById('contenedorHorarios');
