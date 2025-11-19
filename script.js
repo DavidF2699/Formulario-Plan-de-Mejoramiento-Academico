@@ -41,9 +41,9 @@ function actualizarHistorial(nuevaPantalla) {
   history.pushState({ pantalla: nuevaPantalla }, '', '');
 }
 
-// Manejar el evento popstate (botón de retroceso)
 window.addEventListener('popstate', function(event) {
-  event.preventDefault();
+  // Inmediatamente volver a crear un estado para prevenir navegación real
+  history.pushState({ pantalla: pantallaActual }, '', '');
   
   // Determinar acción según pantalla actual
   if (pantallaActual === 'pantallaLogin') {
@@ -66,13 +66,6 @@ window.addEventListener('popstate', function(event) {
     // Desde "Panel de Administración" → Volver a "Acceso de Administrador"
     mostrarLoginAdmin();
   }
-  else {
-    // En cualquier otra pantalla (inicio), no hacer nada
-    return;
-  }
-  
-  // Mantener el estado actual para evitar que se salga
-  history.pushState({ pantalla: pantallaActual }, '', '');
 });
 
 // ===================================
