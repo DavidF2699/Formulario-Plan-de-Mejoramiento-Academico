@@ -1,32 +1,25 @@
+// URL y KEY optimizadas - Construcción más eficiente
+const SUPABASE_URL = `https://vkfjttukyrtiumzfmyuk.supabase.co`;
 
-// URL
-const p1 = 'https://';
-const p2 = 'vkfjtt';
-const p3 = 'ukyrti';
-const p4 = 'umzfmy';
-const p5 = 'uk.supa';
-const p6 = 'base.co';
-const SUPABASE_URL = p1 + p2 + p3 + p4 + p5 + p6;
-
-// KEY
-const k1 = 'eyJhbGciOiJIUzI1';
-const k2 = 'NiIsInR5cCI6IkpXVCJ9.';
-const k3 = 'eyJpc3MiOiJzdXBhYmFzZS';
-const k4 = 'IsInJlZiI6InZrZmp0dHVr';
-const k5 = 'eXJ0aXVtemZteXVrIiwicm';
-const k6 = '9sZSI6ImFub24iLCJpYXQi';
-const k7 = 'OjE3NjI0NTU0MjQsImV4cC';
-const k8 = 'I6MjA3ODAzMTQyNH0.';
-const k9 = 'eU8GeI8IVazXydMDwY98';
-const k10 = 'TUzT9xvjhcbXBu6cruCPiEk';
-const SUPABASE_KEY = k1 + k2 + k3 + k4 + k5 + k6 + k7 + k8 + k9 + k10;
-
+const SUPABASE_KEY = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZrZmp0dHVreXJ0aXVtemZteXVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0NTU0MjQsImV4cCI6MjA3ODAzMTQyNH0.eU8GeI8IVazXydMDwY98TUzT9xvjhcbXBu6cruCPiEk`;
 
 // Variables globales
 let datosEstudiante = null;
 let instructorActual = null;
 let formularioEnviandose = false;
 let graficoTutorias = null;
+
+// Cache de datos precargados
+const datosCache = {
+  facultadesCarreras: [],
+  tutoresNorte: [],
+  tutoresSur: [],
+  profesores: [],
+  materias: [],
+  temas: []
+};
+
+let facultadesData = {};
 
 
 // ===================================
@@ -37,7 +30,6 @@ async function fetchConReintentos(url, options, intentos = 3) {
     try {
       const response = await fetch(url, options);
       
-      // Si la respuesta no es exitosa, lanzar error
       if (!response.ok) {
         throw new Error(`Error del servidor: ${response.status}`);
       }
@@ -47,32 +39,15 @@ async function fetchConReintentos(url, options, intentos = 3) {
     } catch (error) {
       console.log(`Intento ${i + 1} de ${intentos} falló:`, error.message);
       
-      // Si es el último intento, lanzar el error
       if (i === intentos - 1) {
         throw new Error('No pudimos conectar con el servidor después de varios intentos. Por favor verifica tu conexión a internet e intenta de nuevo.');
       }
       
-      // Esperar antes de reintentar (1 segundo, luego 2 segundos, luego 3 segundos)
       await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-      console.log(`Reintentando...`);
+      console.log('Reintentando...');
     }
   }
 }
-
-
-// ===================================
-// CACHE DE DATOS PRECARGADOS
-// ===================================
-let datosCache = {
-  facultadesCarreras: [],
-  tutoresNorte: [],
-  tutoresSur: [],
-  profesores: [],
-  materias: [],
-  temas: []
-};
-
-let facultadesData = {};
 
 // ===================================
 // FUNCIONES DE SUPABASE
@@ -84,33 +59,30 @@ async function supabaseQuery(table, options = {}) {
   if (options.eq) url += `${options.select ? '&' : '?'}${options.eq.field}=eq.${options.eq.value}`;
   if (options.order) url += `${url.includes('?') ? '&' : '?'}order=${options.order}`;
   
-  // AHORA USA fetchConReintentos en vez de fetch normal
-  return await fetchConReintentos(url, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json'
-    }
-  });
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json'
+  };
+  
+  return await fetchConReintentos(url, { headers });
 }
 
 async function supabaseInsert(table, data) {
-  // AHORA USA fetchConReintentos en vez de fetch normal
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  };
+  
   return await fetchConReintentos(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
+    headers,
     body: JSON.stringify(data)
   });
 }
 
-// ===================================
-// PRECARGA DE DATOS
-// ===================================
 // ===================================
 // PRECARGA OPTIMIZADA POR MÓDULO
 // ===================================
@@ -188,12 +160,12 @@ async function precargarDatosEstadisticas() {
 function procesarFacultadesData() {
   facultadesData = {};
   
-  datosCache.facultadesCarreras.forEach(item => {
+  for (const item of datosCache.facultadesCarreras) {
     if (!facultadesData[item.facultad]) {
       facultadesData[item.facultad] = [];
     }
     facultadesData[item.facultad].push(item.programa);
-  });
+  }
 }
 
 
@@ -384,13 +356,16 @@ function cargarFacultades() {
   select.innerHTML = '<option value="">Seleccione una facultad</option>';
   
   const facultadesOrdenadas = Object.keys(facultadesData).sort();
+  const fragment = document.createDocumentFragment();
   
-  facultadesOrdenadas.forEach(facultad => {
+  for (const facultad of facultadesOrdenadas) {
     const option = document.createElement('option');
     option.value = facultad;
     option.textContent = facultad;
-    select.appendChild(option);
-  });
+    fragment.appendChild(option);
+  }
+  
+  select.appendChild(fragment);
 }
 
 function cargarProgramas() {
@@ -408,13 +383,16 @@ function cargarProgramas() {
   
   const programas = facultadesData[facultad] || [];
   const programasOrdenados = programas.sort();
+  const fragment = document.createDocumentFragment();
   
-  programasOrdenados.forEach(programa => {
+  for (const programa of programasOrdenados) {
     const option = document.createElement('option');
     option.value = programa;
     option.textContent = programa;
-    selectPrograma.appendChild(option);
-  });
+    fragment.appendChild(option);
+  }
+  
+  selectPrograma.appendChild(fragment);
 }
 
 // ===================================
@@ -720,7 +698,6 @@ function cargarInstructores() {
 
   if (!sede || !tipo) return;
 
-  // Ocultar campos al cambiar sede o tipo
   const grupoFacultad = document.getElementById('grupoFacultadDepartamento');
   const selectFacultad = document.getElementById('facultadDepartamento');
   
@@ -729,18 +706,15 @@ function cargarInstructores() {
   selectFacultad.value = '';
   document.getElementById('instructor').value = '';
   
-  // IMPORTANTE: Remover required del campo de facultad cuando está oculto
   selectFacultad.removeAttribute('required');
 
   if (tipo === 'Tutor') {
-    // Si es tutor, mostrar directamente los tutores según la sede
     const selectInstructor = document.getElementById('instructor');
     document.getElementById('grupoInstructor').classList.remove('hidden');
     document.getElementById('labelInstructor').textContent = 'Tutor *';
 
     let instructores = [];
     
-    // Si es Virtual, mostrar TODOS los tutores (Norte + Sur)
     if (sede === 'Virtual') {
       instructores = [...datosCache.tutoresNorte, ...datosCache.tutoresSur];
     } else if (sede === 'Norte') {
@@ -750,33 +724,30 @@ function cargarInstructores() {
     }
 
     const instructoresOrdenados = [...instructores].sort((a, b) => a.nombre.localeCompare(b.nombre));
-
-selectInstructor.innerHTML = '<option value="">Seleccione un tutor</option>';
+    selectInstructor.innerHTML = '<option value="">Seleccione un tutor</option>';
     
-    // Eliminar duplicados (mismo nombre, diferentes áreas)
     const instructoresUnicos = [];
     const nombresVistos = new Set();
     
-    instructoresOrdenados.forEach(inst => {
+    for (const inst of instructoresOrdenados) {
       if (!nombresVistos.has(inst.nombre)) {
         nombresVistos.add(inst.nombre);
         instructoresUnicos.push(inst);
       }
-    });
+    }
     
-    instructoresUnicos.forEach(inst => {
+    const fragment = document.createDocumentFragment();
+    for (const inst of instructoresUnicos) {
       const option = document.createElement('option');
       option.value = inst.nombre;
       option.textContent = inst.nombre;
-      selectInstructor.appendChild(option);
-    });
+      fragment.appendChild(option);
+    }
+    selectInstructor.appendChild(fragment);
     
     actualizarProgreso(2);
   } else if (tipo === 'Profesor') {
-    // Si es profesor, mostrar el selector de Facultad/Departamento
-    // INDEPENDIENTE de la sede
     grupoFacultad.classList.remove('hidden');
-    // IMPORTANTE: Agregar required cuando se muestra
     selectFacultad.setAttribute('required', 'required');
     actualizarProgreso(2);
   }
@@ -794,7 +765,6 @@ function cargarProfesoresPorFacultad() {
   document.getElementById('grupoInstructor').classList.remove('hidden');
   document.getElementById('labelInstructor').textContent = 'Profesor *';
 
-  // Filtrar por facultad_departamento sin considerar la sede
   const profesores = datosCache.profesores.filter(
     prof => prof.facultad_departamento === facultadDepartamento
   );
@@ -802,13 +772,16 @@ function cargarProfesoresPorFacultad() {
   const profesoresOrdenados = [...profesores].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   selectInstructor.innerHTML = '<option value="">Seleccione un profesor</option>';
-  profesoresOrdenados.forEach(prof => {
+  
+  const fragment = document.createDocumentFragment();
+  for (const prof of profesoresOrdenados) {
     const option = document.createElement('option');
     option.value = prof.nombre;
     option.setAttribute('data-area', prof.area);
     option.textContent = prof.nombre;
-    selectInstructor.appendChild(option);
-  });
+    fragment.appendChild(option);
+  }
+  selectInstructor.appendChild(fragment);
 }
 
 // ===================================
@@ -822,7 +795,6 @@ function cargarMaterias() {
 
   const instructorNombre = selectedOption.value;
   
-  // Obtener TODAS las áreas del instructor (puede tener múltiples)
   let areasInstructor = [];
   
   if (document.getElementById('tipoInstructor').value === 'Tutor') {
@@ -837,26 +809,23 @@ function cargarMaterias() {
       tutores = datosCache.tutoresSur;
     }
     
-    // Buscar todas las áreas de este tutor
-    tutores.forEach(tutor => {
+    for (const tutor of tutores) {
       if (tutor.nombre === instructorNombre && !areasInstructor.includes(tutor.area)) {
         areasInstructor.push(tutor.area);
       }
-    });
+    }
   } else {
-    // Para profesores
-    datosCache.profesores.forEach(prof => {
+    for (const prof of datosCache.profesores) {
       if (prof.nombre === instructorNombre && !areasInstructor.includes(prof.area)) {
         areasInstructor.push(prof.area);
       }
-    });
+    }
   }
 
   instructorActual = { nombre: instructorNombre, areas: areasInstructor };
 
   document.getElementById('grupoMateria').classList.remove('hidden');
 
-  // Filtrar materias de TODAS las áreas del instructor
   const materiasFiltradas = datosCache.materias.filter(mat => 
     areasInstructor.includes(mat.area)
   );
@@ -866,27 +835,25 @@ function cargarMaterias() {
   const selectMateria = document.getElementById('asignatura');
   selectMateria.innerHTML = '<option value="">Seleccione una asignatura</option>';
   
-  materiasOrdenadas.forEach(mat => {
+  const fragment = document.createDocumentFragment();
+  for (const mat of materiasOrdenadas) {
     const option = document.createElement('option');
     option.value = mat.materia;
     option.textContent = mat.materia;
-    selectMateria.appendChild(option);
-  });
+    fragment.appendChild(option);
+  }
   
-  // Agregar opción "Otra"
   const optionOtra = document.createElement('option');
   optionOtra.value = 'Otra';
   optionOtra.textContent = 'Otra: ¿Cuál?';
   optionOtra.style.fontWeight = 'bold';
-  selectMateria.appendChild(optionOtra);
+  fragment.appendChild(optionOtra);
+  
+  selectMateria.appendChild(fragment);
   
   actualizarProgreso(3);
 }
 
-
-// ===================================
-// CARGAR TEMAS
-// ===================================
 // ===================================
 // CARGAR TEMAS
 // ===================================
@@ -894,30 +861,24 @@ function cargarTemas() {
   const materia = document.getElementById('asignatura').value;
   if (!materia) return;
 
-  // Verificar si seleccionó "Otra"
   const containerAsignatura = document.getElementById('otraAsignaturaContainer');
   const inputAsignatura = document.getElementById('otraAsignatura');
   
   if (materia === 'Otra') {
-    // Mostrar campo para especificar la asignatura
     containerAsignatura.classList.remove('hidden');
     inputAsignatura.required = true;
     
-    // Mostrar grupo de tema
     document.getElementById('grupoTema').classList.remove('hidden');
     
-    // Ocultar el select de tema y mostrar el input de texto
     const selectTema = document.getElementById('tema');
     selectTema.style.display = 'none';
     selectTema.required = false;
     
-    // Mostrar campo de texto para tema personalizado
     const containerTema = document.getElementById('otroTemaContainer');
     const inputTema = document.getElementById('otroTema');
     containerTema.classList.remove('hidden');
     inputTema.required = true;
     
-    // Cambiar el label de tema
     const labelTema = document.querySelector('#grupoTema label');
     labelTema.textContent = 'Tema *';
     
@@ -931,7 +892,6 @@ function cargarTemas() {
     actualizarProgreso(4);
     return;
   } else {
-    // Si NO es "Otra", ocultar el campo de asignatura personalizada
     containerAsignatura.classList.add('hidden');
     inputAsignatura.required = false;
     inputAsignatura.value = '';
@@ -939,7 +899,6 @@ function cargarTemas() {
 
   document.getElementById('grupoTema').classList.remove('hidden');
 
-  // Filtrar temas de la materia seleccionada
   const temasFiltrados = datosCache.temas.filter(tem => tem.materia === materia);
   
   const selectTema = document.getElementById('tema');
@@ -947,46 +906,42 @@ function cargarTemas() {
   const inputTema = document.getElementById('otroTema');
   const labelTema = document.querySelector('#grupoTema label');
 
-  // Si NO hay temas en la base de datos, mostrar solo campo de texto
   if (temasFiltrados.length === 0) {
-    // Ocultar el select
     selectTema.style.display = 'none';
     selectTema.required = false;
     
-    // Mostrar campo de texto
     containerTema.classList.remove('hidden');
     inputTema.required = true;
     inputTema.value = '';
     
-    // Cambiar el label
     labelTema.textContent = 'Tema *';
   } else {
-    // Si HAY temas, mostrar el select normalmente
     const temasOrdenados = temasFiltrados.sort((a, b) => a.tema.localeCompare(b.tema));
     
     selectTema.style.display = '';
     selectTema.required = true;
     selectTema.innerHTML = '<option value="">Seleccione un tema</option>';
     
-    temasOrdenados.forEach(tem => {
+    const fragment = document.createDocumentFragment();
+    for (const tem of temasOrdenados) {
       const option = document.createElement('option');
       option.value = tem.tema;
       option.textContent = tem.tema;
-      selectTema.appendChild(option);
-    });
+      fragment.appendChild(option);
+    }
 
     const optionOtro = document.createElement('option');
     optionOtro.value = 'Otro';
     optionOtro.textContent = 'Otro: ¿Cuál?';
     optionOtro.style.fontWeight = 'bold';
-    selectTema.appendChild(optionOtro);
+    fragment.appendChild(optionOtro);
     
-    // Ocultar campo de texto
+    selectTema.appendChild(fragment);
+    
     containerTema.classList.add('hidden');
     inputTema.required = false;
     inputTema.value = '';
     
-    // Restaurar label original
     labelTema.textContent = 'Tema de la tutoría *';
   }
 
@@ -1972,7 +1927,7 @@ function generarExcelSimplificado(datos, nombreArchivo) {
     const horaFormateada = `${horas}:${minutos}`;
     
     // Convertir Date a número de serie de Excel
-    const serialDate = (fechaColombia - new Date(1899, 11, 30)) / (24 * 60 * 60 * 1000);
+    const serialDate = Math.floor((fechaColombia - new Date(Date.UTC(1899, 11, 30))) / 86400000);
     
     return {
       'Fecha': serialDate,
@@ -2034,7 +1989,7 @@ function generarExcelCompleto(datos, nombreArchivo) {
     const horaFormateada = `${horas}:${minutos}`;
     
     // Convertir Date a número de serie de Excel
-    const serialDate = (fechaColombia - new Date(1899, 11, 30)) / (24 * 60 * 60 * 1000);
+    const serialDate = Math.floor((fechaColombia - new Date(Date.UTC(1899, 11, 30))) / 86400000);
     
     return {
       'Fecha': serialDate,
@@ -2112,7 +2067,7 @@ function generarExcelDocentes(datos, nombreArchivo) {
     const horaFormateada = `${horas}:${minutos}`;
     
     // Convertir Date a número de serie de Excel
-    const serialDate = (fechaColombia - new Date(1899, 11, 30)) / (24 * 60 * 60 * 1000);
+    const serialDate = Math.floor((fechaColombia - new Date(Date.UTC(1899, 11, 30))) / 86400000);
     
     return {
       'Fecha': serialDate,
