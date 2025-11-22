@@ -1927,8 +1927,7 @@ function generarExcelSimplificado(datos, nombreArchivo) {
     const horaFormateada = `${horas}:${minutos}`;
     
     // Convertir Date a número de serie de Excel
-    const serialDate = Math.floor((fechaColombia - new Date(Date.UTC(1899, 11, 30))) / 86400000);
-    
+    const serialDate = (fechaColombia - new Date(1899, 11, 30)) / (86400000);
     return {
       'Fecha': serialDate,
       'Hora': horaFormateada,
@@ -1989,7 +1988,7 @@ function generarExcelCompleto(datos, nombreArchivo) {
     const horaFormateada = `${horas}:${minutos}`;
     
     // Convertir Date a número de serie de Excel
-    const serialDate = Math.floor((fechaColombia - new Date(Date.UTC(1899, 11, 30))) / 86400000);
+    const serialDate = (fechaColombia - new Date(1899, 11, 30)) / (86400000);
     
     return {
       'Fecha': serialDate,
@@ -2067,7 +2066,7 @@ function generarExcelDocentes(datos, nombreArchivo) {
     const horaFormateada = `${horas}:${minutos}`;
     
     // Convertir Date a número de serie de Excel
-    const serialDate = Math.floor((fechaColombia - new Date(Date.UTC(1899, 11, 30))) / 86400000);
+    const serialDate = (fechaColombia - new Date(1899, 11, 30)) / (86400000);
     
     return {
       'Fecha': serialDate,
