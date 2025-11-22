@@ -2435,3 +2435,108 @@ function actualizarGrafica() {
     }
   });
 }
+
+
+// ===================================
+// MANEJO DEL BOTÓN DE RETROCESO (BACK BUTTON)
+// ===================================
+
+// Variable para rastrear la pantalla actual
+let pantallaActual = 'pantallaInicio';
+let historialNavegacion = ['pantallaInicio'];
+
+// Actualizar el historial cuando cambia la pantalla
+function actualizarHistorialNavegacion(nuevaPantalla) {
+  pantallaActual = nuevaPantalla;
+  
+  // Agregar al historial del navegador
+  const estadoActual = {
+    pantalla: nuevaPantalla,
+    timestamp: Date.now()
+  };
+  
+  window.history.pushState(estadoActual, '', window.location.href);
+}
+
+// Modificar la función mostrarPantalla existente
+const mostrarPantallaOriginal = mostrarPantalla;
+mostrarPantalla = function(id) {
+  mostrarPantallaOriginal(id);
+  actualizarHistorialNavegacion(id);
+};
+
+// Manejador del evento popstate (botón de retroceso)
+window.addEventListener('popstate', function(event) {
+  event.preventDefault();
+  
+  // Si no hay estado, estamos en la página inicial
+  if (!event.state) {
+    if (pantallaActual !== 'pantallaInicio') {
+      manejarRetroceso();
+    }
+    return;
+  }
+  
+  manejarRetroceso();
+});
+
+// Función principal que maneja la lógica de retroceso
+function manejarRetroceso() {
+  
+  // REGLA 1: Si estoy en "Llenar Formulario" → Volver a "Bienvenido"
+  if (pantallaActual === 'pantallaLogin') {
+    volverInicio();
+    return;
+  }
+  
+  // REGLA 2: Si estoy en "Registro de Asistencia" → Mostrar confirmación
+  if (pantallaActual === 'pantallaFormulario') {
+    // Prevenir el retroceso real del navegador
+    window.history.pushState({ pantalla: pantallaActual }, '', window.location.href);
+    
+    confirmarCancelacion();
+    return;
+  }
+  
+  // REGLA 3: Si estoy en "Registro de Estudiante" → Mostrar confirmación
+  if (pantallaActual === 'pantallaRegistro') {
+    // Prevenir el retroceso real del navegador
+    window.history.pushState({ pantalla: pantallaActual }, '', window.location.href);
+    
+    confirmarCancelacion();
+    return;
+  }
+  
+  // REGLA 4: Si estoy en "Acceso de Administrador" → Volver a "Bienvenido"
+  if (pantallaActual === 'pantallaAdminLogin') {
+    volverInicio();
+    return;
+  }
+  
+  // REGLA 5: Si estoy en "Panel de Administración" → Volver a "Acceso de Administrador"
+  if (pantallaActual === 'pantallaAdmin') {
+    mostrarLoginAdmin();
+    return;
+  }
+  
+  // Por defecto, volver al inicio
+  volverInicio();
+}
+
+// Inicializar el estado del historial al cargar la página
+window.addEventListener('load', function() {
+  // Establecer el estado inicial
+  const estadoInicial = {
+    pantalla: 'pantallaInicio',
+    timestamp: Date.now()
+  };
+  
+  window.history.replaceState(estadoInicial, '', window.location.href);
+  pantallaActual = 'pantallaInicio';
+});
+
+// Prevenir que el navegador restaure el scroll al usar el botón de retroceso
+if ('scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
+
